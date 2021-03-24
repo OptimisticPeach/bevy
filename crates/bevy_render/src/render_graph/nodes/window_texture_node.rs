@@ -64,7 +64,8 @@ impl Node for WindowTextureNode {
         {
             let render_resource_context = render_context.resources_mut();
             if let Some(RenderResourceId::Texture(old_texture)) = output.get(WINDOW_TEXTURE) {
-                render_resource_context.remove_texture(old_texture);
+                // cleans up all views
+                render_resource_context.remove_texture(old_texture.get_texture_id());
             }
 
             self.descriptor.size.width = window.physical_width().max(1);
