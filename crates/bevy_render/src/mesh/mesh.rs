@@ -3,6 +3,7 @@ mod conversions;
 use crate::{
     pipeline::{IndexFormat, PrimitiveTopology, RenderPipelines, VertexFormat},
     renderer::{BufferInfo, BufferUsage, RenderResourceContext, RenderResourceId},
+    shape::shapegen::Interpolator,
 };
 use bevy_asset::{AssetEvent, Assets, Handle};
 use bevy_core::cast_slice;
