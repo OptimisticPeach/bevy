@@ -190,7 +190,7 @@ impl World {
         &mut self,
         descriptor: ComponentDescriptor,
     ) -> Result<EntityAtomKindId, RegistrationError> {
-        Ok(self.components.new_relationship_kind(descriptor)?.id())
+        Ok(self.components.new_relation_kind(descriptor)?.id())
     }
 
     /// Retrieves an [EntityRef] that exposes read-only operations for the given `entity`.

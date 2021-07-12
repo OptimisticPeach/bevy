@@ -54,7 +54,7 @@ impl<'w> EntityRef<'w> {
         let kind = match self
             .world
             .components
-            .get_relationship_kind(TypeId::of::<T>())
+            .get_relation_kind(TypeId::of::<T>())
         {
             Some(kind) => kind,
             None => return false,
@@ -193,7 +193,7 @@ impl<'w> EntityMut<'w> {
         let kind = match self
             .world
             .components
-            .get_relationship_kind(TypeId::of::<T>())
+            .get_relation_kind(TypeId::of::<T>())
         {
             Some(kind) => kind,
             None => return false,
@@ -372,7 +372,7 @@ impl<'w> EntityMut<'w> {
             let kind = self
                 .world
                 .components
-                .get_relationship_kind_or_insert(ComponentDescriptor::new::<T>(StorageType::Table));
+                .get_relation_kind_or_insert(ComponentDescriptor::new::<T>(StorageType::Table));
             self.world
                 .bundles
                 .init_relationship_info(kind, Some(target))
@@ -566,7 +566,7 @@ impl<'w> EntityMut<'w> {
         let kind = self
             .world
             .components
-            .get_relationship_kind(TypeId::of::<T>())?;
+            .get_relation_kind(TypeId::of::<T>())?;
         let bundle_info = self
             .world
             .bundles
@@ -957,7 +957,7 @@ unsafe fn get_relationship_with_type(
     entity: Entity,
     location: EntityLocation,
 ) -> Option<*mut u8> {
-    let kind = world.components.get_relationship_kind(type_id)?;
+    let kind = world.components.get_relation_kind(type_id)?;
     get_component(world, kind.id(), Some(target), entity, location)
 }
 
@@ -982,7 +982,7 @@ pub(crate) unsafe fn get_relationship_and_ticks_with_type(
     entity: Entity,
     location: EntityLocation,
 ) -> Option<(*mut u8, *mut ComponentTicks)> {
-    let kind_info = world.components.get_relationship_kind(type_id)?;
+    let kind_info = world.components.get_relation_kind(type_id)?;
     get_component_and_ticks(world, kind_info.id(), Some(target), entity, location)
 }
 

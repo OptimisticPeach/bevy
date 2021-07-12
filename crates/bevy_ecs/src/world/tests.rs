@@ -703,7 +703,7 @@ pub fn sparse_set_relation_registration() {
     use std::any::TypeId;
     let ty_id = world
         .components
-        .get_relationship_kind(TypeId::of::<String>())
+        .get_relation_kind(TypeId::of::<String>())
         .unwrap()
         .id();
 

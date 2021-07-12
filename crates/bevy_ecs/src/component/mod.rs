@@ -200,7 +200,7 @@ pub enum RegistrationError {
 }
 
 impl Components {
-    pub fn new_relationship_kind(
+    pub fn new_relation_kind(
         &mut self,
         layout: ComponentDescriptor,
     ) -> Result<&EntityAtomKindInfo, RegistrationError> {
@@ -272,12 +272,12 @@ impl Components {
         Some(&self.kinds[id.0])
     }
 
-    pub fn get_relationship_kind(&self, type_id: TypeId) -> Option<&EntityAtomKindInfo> {
+    pub fn get_relation_kind(&self, type_id: TypeId) -> Option<&EntityAtomKindInfo> {
         let id = self.relationship_indices.get(&type_id).copied()?;
         Some(&self.kinds[id.0])
     }
 
-    pub fn get_relationship_kind_or_insert(
+    pub fn get_relation_kind_or_insert(
         &mut self,
         layout: ComponentDescriptor,
     ) -> &EntityAtomKindInfo {
@@ -287,7 +287,7 @@ impl Components {
             .copied()
         {
             Some(kind) => &self.kinds[kind.0],
-            None => self.new_relationship_kind(layout).unwrap(),
+            None => self.new_relation_kind(layout).unwrap(),
         }
     }
 
