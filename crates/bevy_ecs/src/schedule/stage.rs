@@ -490,7 +490,7 @@ impl SystemStage {
                         .map(|id| {
                             world
                                 .components()
-                                .get_relation_kind(*id)
+                                .get_entity_atom_kind(*id)
                                 .data_layout()
                                 .name()
                         })

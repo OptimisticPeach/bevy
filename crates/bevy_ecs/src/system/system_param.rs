@@ -192,7 +192,7 @@ fn assert_component_access_compatibility(
         .map(|component_id| {
             world
                 .components
-                .get_relation_kind(component_id)
+                .get_entity_atom_kind(component_id)
                 .data_layout()
                 .name()
         })
