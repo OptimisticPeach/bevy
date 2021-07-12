@@ -1,7 +1,7 @@
 use bevy_utils::HashMap;
 
 use crate::{
-    component::{ComponentDescriptor, ComponentTicks, RelationKindId, RelationKindInfo},
+    component::{ComponentDescriptor, ComponentTicks, RelationKindId, EntityAtomKindInfo},
     entity::Entity,
     storage::BlobVec,
 };
@@ -395,7 +395,7 @@ impl SparseSets {
     // FIXME(Relationships): Deal with the ability to register components with a target, and relations without one
     pub fn get_or_insert(
         &mut self,
-        relation_kind: &RelationKindInfo,
+        relation_kind: &EntityAtomKindInfo,
         target: Option<Entity>,
     ) -> &mut ComponentSparseSet {
         match target {

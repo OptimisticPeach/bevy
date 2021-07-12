@@ -1,5 +1,5 @@
 use crate::{
-    component::{ComponentTicks, Components, RelationKindId, RelationKindInfo},
+    component::{ComponentTicks, Components, RelationKindId, EntityAtomKindInfo},
     entity::Entity,
     storage::{BlobVec, SparseSet},
 };
@@ -41,7 +41,7 @@ pub struct Column {
 impl Column {
     #[inline]
     pub fn with_capacity(
-        relation_kind: &RelationKindInfo,
+        relation_kind: &EntityAtomKindInfo,
         target: Option<Entity>,
         capacity: usize,
     ) -> Self {
@@ -232,7 +232,7 @@ impl Table {
         )
     }
 
-    pub fn add_column(&mut self, relation_info: &RelationKindInfo, target: Option<Entity>) {
+    pub fn add_column(&mut self, relation_info: &EntityAtomKindInfo, target: Option<Entity>) {
         let capacity = self.capacity();
         match target {
             None => self.component_columns.insert(
