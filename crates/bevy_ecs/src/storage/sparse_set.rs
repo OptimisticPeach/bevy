@@ -1,7 +1,7 @@
 use bevy_utils::HashMap;
 
 use crate::{
-    component::{ComponentDescriptor, ComponentTicks, RelationKindId, EntityAtomKindInfo},
+    component::{ComponentDescriptor, ComponentTicks, EntityAtomKindId, EntityAtomKindInfo},
     entity::Entity,
     storage::BlobVec,
 };
@@ -379,14 +379,14 @@ impl_sparse_set_index!(u8, u16, u32, u64, usize);
 
 #[derive(Default)]
 pub struct SparseSets {
-    component_sets: SparseSet<RelationKindId, ComponentSparseSet>,
-    relation_sets: SparseSet<RelationKindId, HashMap<Entity, ComponentSparseSet>>,
+    component_sets: SparseSet<EntityAtomKindId, ComponentSparseSet>,
+    relation_sets: SparseSet<EntityAtomKindId, HashMap<Entity, ComponentSparseSet>>,
 }
 
 impl SparseSets {
     pub fn get_sets_of_relation_kind(
         &self,
-        relation_kind: RelationKindId,
+        relation_kind: EntityAtomKindId,
     ) -> Option<&HashMap<Entity, ComponentSparseSet>> {
         self.relation_sets.get(relation_kind)
     }
@@ -414,7 +414,7 @@ impl SparseSets {
 
     pub fn get(
         &self,
-        component_id: RelationKindId,
+        component_id: EntityAtomKindId,
         target: Option<Entity>,
     ) -> Option<&ComponentSparseSet> {
         match &target {
@@ -425,7 +425,7 @@ impl SparseSets {
 
     pub fn get_mut(
         &mut self,
-        component_id: RelationKindId,
+        component_id: EntityAtomKindId,
         target: Option<Entity>,
     ) -> Option<&mut ComponentSparseSet> {
         match &target {

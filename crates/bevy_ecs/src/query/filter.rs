@@ -1,7 +1,7 @@
 use crate::{
     archetype::{Archetype, ArchetypeComponentId},
     bundle::Bundle,
-    component::{Component, ComponentDescriptor, ComponentTicks, RelationKindId, StorageType},
+    component::{Component, ComponentDescriptor, ComponentTicks, EntityAtomKindId, StorageType},
     entity::Entity,
     query::{Access, Fetch, FetchState, FilteredAccess, WorldQuery},
     storage::{ComponentSparseSet, Table, Tables},
@@ -95,7 +95,7 @@ pub struct WithFetch<T> {
 
 /// The [`FetchState`] of [`With`].
 pub struct WithState<T> {
-    component_id: RelationKindId,
+    component_id: EntityAtomKindId,
     storage_type: StorageType,
     marker: PhantomData<T>,
 }
@@ -116,7 +116,7 @@ unsafe impl<T: Component> FetchState for WithState<T> {
     }
 
     #[inline]
-    fn update_component_access(&self, access: &mut FilteredAccess<RelationKindId>) {
+    fn update_component_access(&self, access: &mut FilteredAccess<EntityAtomKindId>) {
         access.add_with(self.component_id);
     }
 
@@ -233,7 +233,7 @@ pub struct WithoutFetch<T> {
 
 /// The [`FetchState`] of [`Without`].
 pub struct WithoutState<T> {
-    component_id: RelationKindId,
+    component_id: EntityAtomKindId,
     storage_type: StorageType,
     marker: PhantomData<T>,
 }
@@ -254,7 +254,7 @@ unsafe impl<T: Component> FetchState for WithoutState<T> {
     }
 
     #[inline]
-    fn update_component_access(&self, access: &mut FilteredAccess<RelationKindId>) {
+    fn update_component_access(&self, access: &mut FilteredAccess<EntityAtomKindId>) {
         access.add_without(self.component_id);
     }
 
@@ -341,7 +341,7 @@ impl<T: Component> WorldQuery for Without<Relation<T>> {
 
 pub struct WithoutRelationState<T> {
     storage_type: StorageType,
-    relation_kind: RelationKindId,
+    relation_kind: EntityAtomKindId,
     marker: PhantomData<T>,
 }
 
@@ -360,7 +360,7 @@ unsafe impl<T: Component> FetchState for WithoutRelationState<T> {
         }
     }
 
-    fn update_component_access(&self, _access: &mut FilteredAccess<RelationKindId>) {
+    fn update_component_access(&self, _access: &mut FilteredAccess<EntityAtomKindId>) {
         // Note: relations dont add a without access as `Query<&mut T, Without<Relation<U>>>`
         // and `Query<&mut T, With<Relation<U>>>` can access the same entities if the targets
         // specified for the relations are different - Boxy
@@ -482,7 +482,7 @@ impl<T: Component> WorldQuery for With<Relation<T>> {
 
 pub struct WithRelationState<T> {
     storage_type: StorageType,
-    relation_kind: RelationKindId,
+    relation_kind: EntityAtomKindId,
     marker: PhantomData<T>,
 }
 
@@ -501,7 +501,7 @@ unsafe impl<T: Component> FetchState for WithRelationState<T> {
         }
     }
 
-    fn update_component_access(&self, access: &mut FilteredAccess<RelationKindId>) {
+    fn update_component_access(&self, access: &mut FilteredAccess<EntityAtomKindId>) {
         access.add_with(self.relation_kind);
     }
 
@@ -611,7 +611,7 @@ pub struct WithBundleFetch<T: Bundle> {
 }
 
 pub struct WithBundleState<T: Bundle> {
-    relation_kind_ids: Vec<(RelationKindId, Option<Entity>)>,
+    relation_kind_ids: Vec<(EntityAtomKindId, Option<Entity>)>,
     is_dense: bool,
     marker: PhantomData<T>,
 }
@@ -637,7 +637,7 @@ unsafe impl<T: Bundle> FetchState for WithBundleState<T> {
     }
 
     #[inline]
-    fn update_component_access(&self, access: &mut FilteredAccess<RelationKindId>) {
+    fn update_component_access(&self, access: &mut FilteredAccess<EntityAtomKindId>) {
         for (kind_id, _) in self.relation_kind_ids.iter().cloned() {
             access.add_with(kind_id);
         }

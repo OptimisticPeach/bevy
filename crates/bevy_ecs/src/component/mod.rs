@@ -150,9 +150,9 @@ impl From<TypeInfo> for ComponentDescriptor {
 }
 
 #[derive(Debug, Copy, Clone, Hash, Eq, PartialEq, PartialOrd, Ord)]
-pub struct RelationKindId(usize);
+pub struct EntityAtomKindId(usize);
 
-impl SparseSetIndex for RelationKindId {
+impl SparseSetIndex for EntityAtomKindId {
     #[inline]
     fn sparse_set_index(&self) -> usize {
         self.0
@@ -166,7 +166,7 @@ impl SparseSetIndex for RelationKindId {
 #[derive(Debug)]
 pub struct EntityAtomKindInfo {
     data: ComponentDescriptor,
-    id: RelationKindId,
+    id: EntityAtomKindId,
 }
 
 impl EntityAtomKindInfo {
@@ -174,7 +174,7 @@ impl EntityAtomKindInfo {
         &self.data
     }
 
-    pub fn id(&self) -> RelationKindId {
+    pub fn id(&self) -> EntityAtomKindId {
         self.id
     }
 }
@@ -184,9 +184,9 @@ pub struct Components {
     kinds: Vec<EntityAtomKindInfo>,
     // These are only used by bevy. Scripting/dynamic components should
     // use their own hashmap to lookup CustomId -> RelationKindId
-    component_indices: HashMap<TypeId, RelationKindId, fxhash::FxBuildHasher>,
-    resource_indices: HashMap<TypeId, RelationKindId, fxhash::FxBuildHasher>,
-    relationship_indices: HashMap<TypeId, RelationKindId, fxhash::FxBuildHasher>,
+    component_indices: HashMap<TypeId, EntityAtomKindId, fxhash::FxBuildHasher>,
+    resource_indices: HashMap<TypeId, EntityAtomKindId, fxhash::FxBuildHasher>,
+    relationship_indices: HashMap<TypeId, EntityAtomKindId, fxhash::FxBuildHasher>,
 }
 
 #[derive(Debug, Error)]
@@ -204,7 +204,7 @@ impl Components {
         &mut self,
         layout: ComponentDescriptor,
     ) -> Result<&EntityAtomKindInfo, RelationsError> {
-        let id = RelationKindId(self.kinds.len());
+        let id = EntityAtomKindId(self.kinds.len());
         if self
             .relationship_indices
             .contains_key(&layout.type_id().unwrap())
@@ -224,7 +224,7 @@ impl Components {
         &mut self,
         layout: ComponentDescriptor,
     ) -> Result<&EntityAtomKindInfo, RelationsError> {
-        let id = RelationKindId(self.kinds.len());
+        let id = EntityAtomKindId(self.kinds.len());
         if self
             .component_indices
             .contains_key(&layout.type_id().unwrap())
@@ -243,7 +243,7 @@ impl Components {
         &mut self,
         layout: ComponentDescriptor,
     ) -> Result<&EntityAtomKindInfo, RelationsError> {
-        let id = RelationKindId(self.kinds.len());
+        let id = EntityAtomKindId(self.kinds.len());
         if self
             .resource_indices
             .contains_key(&layout.type_id().unwrap())
@@ -258,7 +258,7 @@ impl Components {
         Ok(self.kinds.last().unwrap())
     }
 
-    pub fn get_relation_kind(&self, id: RelationKindId) -> &EntityAtomKindInfo {
+    pub fn get_relation_kind(&self, id: EntityAtomKindId) -> &EntityAtomKindInfo {
         self.kinds.get(id.0).unwrap()
     }
 
