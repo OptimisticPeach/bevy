@@ -480,17 +480,17 @@ impl<'w> EntityMut<'w> {
     pub fn remove_bundle<T: Bundle>(&mut self) -> Option<T> {
         let archetypes = &mut self.world.archetypes;
         let storages = &mut self.world.storages;
-        let relationships = &mut self.world.components;
+        let entity_atoms = &mut self.world.components;
         let entities = &mut self.world.entities;
         let removed_components = &mut self.world.removed_components;
 
-        let bundle_info = self.world.bundles.init_info::<T>(relationships);
+        let bundle_info = self.world.bundles.init_info::<T>(entity_atoms);
         let old_location = self.location;
         let new_archetype_id = unsafe {
             remove_bundle_from_archetype(
                 archetypes,
                 storages,
-                relationships,
+                entity_atoms,
                 old_location.archetype_id,
                 bundle_info,
                 false,
@@ -511,7 +511,7 @@ impl<'w> EntityMut<'w> {
                 let component_id = bundle_components.next().unwrap();
                 // SAFE: entity location is valid and table row is removed below
                 take_entity_atom(
-                    relationships,
+                    entity_atoms,
                     storages,
                     old_archetype,
                     removed_components,
@@ -575,7 +575,7 @@ impl<'w> EntityMut<'w> {
         let kind_id = kind.id();
         let archetypes = &mut self.world.archetypes;
         let storages = &mut self.world.storages;
-        let relationships = &mut self.world.components;
+        let entity_atoms = &mut self.world.components;
         let entities = &mut self.world.entities;
         let removed_components = &mut self.world.removed_components;
 
@@ -584,7 +584,7 @@ impl<'w> EntityMut<'w> {
             remove_bundle_from_archetype(
                 archetypes,
                 storages,
-                relationships,
+                entity_atoms,
                 old_location.archetype_id,
                 bundle_info,
                 false,
@@ -602,7 +602,7 @@ impl<'w> EntityMut<'w> {
         let result = unsafe {
             // SAFE: entity location is valid and table row is removed below
             core::ptr::read(take_entity_atom(
-                relationships,
+                entity_atoms,
                 storages,
                 old_archetype,
                 removed_components,
@@ -657,17 +657,17 @@ impl<'w> EntityMut<'w> {
     pub fn remove_bundle_intersection<T: Bundle>(&mut self) {
         let archetypes = &mut self.world.archetypes;
         let storages = &mut self.world.storages;
-        let relationships = &mut self.world.components;
+        let entity_atoms = &mut self.world.components;
         let entities = &mut self.world.entities;
         let removed_components = &mut self.world.removed_components;
 
-        let bundle_info = self.world.bundles.init_info::<T>(relationships);
+        let bundle_info = self.world.bundles.init_info::<T>(entity_atoms);
         let old_location = self.location;
         let new_archetype_id = unsafe {
             remove_bundle_from_archetype(
                 archetypes,
                 storages,
-                relationships,
+                entity_atoms,
                 old_location.archetype_id,
                 bundle_info,
                 true,
@@ -894,10 +894,10 @@ unsafe fn get_entity_atom_and_ticks(
 #[inline]
 #[allow(clippy::too_many_arguments)]
 unsafe fn take_entity_atom(
-    relationships: &Components,
+    entity_atoms: &Components,
     storages: &mut Storages,
     archetype: &Archetype,
-    removed_relationships: &mut SparseSet<
+    removed_relations: &mut SparseSet<
         EntityAtomKindId,
         (Vec<Entity>, HashMap<Entity, Vec<Entity>>),
     >,
@@ -906,9 +906,9 @@ unsafe fn take_entity_atom(
     entity: Entity,
     location: EntityLocation,
 ) -> *mut u8 {
-    let kind_info = relationships.get_entity_atom_kind(relation_kind);
+    let kind_info = entity_atoms.get_entity_atom_kind(relation_kind);
 
-    let targets = removed_relationships.get_or_insert_with(relation_kind, Default::default);
+    let targets = removed_relations.get_or_insert_with(relation_kind, Default::default);
     match relation_target {
         None => targets.0.push(entity),
         Some(target) => targets
