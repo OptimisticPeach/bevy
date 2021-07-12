@@ -186,7 +186,7 @@ pub struct Components {
     // use their own hashmap to lookup CustomId -> RelationKindId
     component_indices: HashMap<TypeId, EntityAtomKindId, fxhash::FxBuildHasher>,
     resource_indices: HashMap<TypeId, EntityAtomKindId, fxhash::FxBuildHasher>,
-    relationship_indices: HashMap<TypeId, EntityAtomKindId, fxhash::FxBuildHasher>,
+    relation_indices: HashMap<TypeId, EntityAtomKindId, fxhash::FxBuildHasher>,
 }
 
 #[derive(Debug, Error)]
@@ -206,7 +206,7 @@ impl Components {
     ) -> Result<&EntityAtomKindInfo, RegistrationError> {
         let id = EntityAtomKindId(self.kinds.len());
         if self
-            .relationship_indices
+            .relation_indices
             .contains_key(&layout.type_id().unwrap())
         {
             return Err(RegistrationError::RelationAlreadyExists {
@@ -214,7 +214,7 @@ impl Components {
                 name: layout.name,
             });
         }
-        self.relationship_indices
+        self.relation_indices
             .insert(layout.type_id().unwrap(), id);
         self.kinds.push(EntityAtomKindInfo { data: layout, id });
         Ok(self.kinds.last().unwrap())
@@ -273,7 +273,7 @@ impl Components {
     }
 
     pub fn get_relation_kind(&self, type_id: TypeId) -> Option<&EntityAtomKindInfo> {
-        let id = self.relationship_indices.get(&type_id).copied()?;
+        let id = self.relation_indices.get(&type_id).copied()?;
         Some(&self.kinds[id.0])
     }
 
@@ -282,7 +282,7 @@ impl Components {
         layout: ComponentDescriptor,
     ) -> &EntityAtomKindInfo {
         match self
-            .relationship_indices
+            .relation_indices
             .get(&layout.type_id().unwrap())
             .copied()
         {
