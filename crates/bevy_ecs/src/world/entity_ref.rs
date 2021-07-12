@@ -375,7 +375,7 @@ impl<'w> EntityMut<'w> {
                 .get_relation_kind_or_insert(ComponentDescriptor::new::<T>(StorageType::Table));
             self.world
                 .bundles
-                .init_relationship_info(kind, Some(target))
+                .init_relation_info(kind, Some(target))
         };
 
         let (archetype, bundle_status, new_location) = unsafe {
@@ -502,7 +502,7 @@ impl<'w> EntityMut<'w> {
         }
 
         let old_archetype = &mut archetypes[old_location.archetype_id];
-        let mut bundle_components = bundle_info.relationship_ids.iter().cloned();
+        let mut bundle_components = bundle_info.relation_ids.iter().cloned();
         let entity = self.entity;
         // SAFE: bundle components are iterated in order, which guarantees that the component type
         // matches
@@ -570,7 +570,7 @@ impl<'w> EntityMut<'w> {
         let bundle_info = self
             .world
             .bundles
-            .init_relationship_info(kind, Some(target));
+            .init_relation_info(kind, Some(target));
 
         let kind_id = kind.id();
         let archetypes = &mut self.world.archetypes;
@@ -681,7 +681,7 @@ impl<'w> EntityMut<'w> {
 
         let old_archetype = &mut archetypes[old_location.archetype_id];
         let entity = self.entity;
-        for (kind_id, target) in bundle_info.relationship_ids.iter().cloned() {
+        for (kind_id, target) in bundle_info.relation_ids.iter().cloned() {
             if old_archetype.contains(kind_id, target) {
                 let (none_remove, target_removed) = removed_components
                     .get_or_insert_with(kind_id, || (Vec::new(), HashMap::default()));
@@ -1024,10 +1024,10 @@ pub(crate) unsafe fn add_bundle_to_archetype(
     }
     let mut new_table_components = Vec::new();
     let mut new_sparse_set_components = Vec::new();
-    let mut bundle_status = Vec::with_capacity(bundle_info.relationship_ids.len());
+    let mut bundle_status = Vec::with_capacity(bundle_info.relation_ids.len());
 
     let current_archetype = &mut archetypes[archetype_id];
-    for (kind_id, target) in bundle_info.relationship_ids.iter().cloned() {
+    for (kind_id, target) in bundle_info.relation_ids.iter().cloned() {
         if current_archetype.contains(kind_id, target) {
             bundle_status.push(ComponentStatus::Mutated);
         } else {
@@ -1133,7 +1133,7 @@ unsafe fn remove_bundle_from_archetype(
             let current_archetype = &mut archetypes[archetype_id];
             let mut removed_table_components = Vec::new();
             let mut removed_sparse_set_components = Vec::new();
-            for (kind_id, target) in bundle_info.relationship_ids.iter().cloned() {
+            for (kind_id, target) in bundle_info.relation_ids.iter().cloned() {
                 if current_archetype.contains(kind_id, target) {
                     let component_info = components.get_entity_atom_kind(kind_id);
                     match component_info.data_layout().storage_type() {

@@ -624,8 +624,8 @@ unsafe impl<T: Bundle> FetchState for WithBundleState<T> {
         let bundle_info = world.bundles.init_info::<T>(&mut world.components);
         let components = &world.components;
         Self {
-            relation_kind_ids: bundle_info.relationship_ids.clone(),
-            is_dense: bundle_info.relationship_ids.iter().all(|(kind_id, _)| {
+            relation_kind_ids: bundle_info.relation_ids.clone(),
+            is_dense: bundle_info.relation_ids.iter().all(|(kind_id, _)| {
                 components
                     .get_entity_atom_kind(*kind_id)
                     .data_layout()

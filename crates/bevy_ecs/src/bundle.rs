@@ -120,7 +120,7 @@ impl SparseSetIndex for BundleId {
 
 pub struct BundleInfo {
     pub(crate) id: BundleId,
-    pub(crate) relationship_ids: Vec<(EntityAtomKindId, Option<Entity>)>,
+    pub(crate) relation_ids: Vec<(EntityAtomKindId, Option<Entity>)>,
     pub(crate) storage_types: Vec<StorageType>,
 }
 
@@ -169,7 +169,7 @@ impl BundleInfo {
         component_ptr: *mut u8,
         change_tick: u32,
     ) {
-        let (kind_id, target) = self.relationship_ids[relationship_index];
+        let (kind_id, target) = self.relation_ids[relationship_index];
         match self.storage_types[relationship_index] {
             StorageType::Table => {
                 let column = table.get_column_mut(kind_id, target).unwrap();
@@ -200,7 +200,7 @@ impl BundleInfo {
 
     #[inline]
     pub fn components(&self) -> &[(EntityAtomKindId, Option<Entity>)] {
-        &self.relationship_ids
+        &self.relation_ids
     }
 
     #[inline]
@@ -213,7 +213,7 @@ impl BundleInfo {
 pub struct Bundles {
     bundle_infos: Vec<BundleInfo>,
     bundle_ids: HashMap<TypeId, BundleId>,
-    relationship_bundle_ids: HashMap<(EntityAtomKindId, Option<Entity>), BundleId>,
+    relation_bundle_ids: HashMap<(EntityAtomKindId, Option<Entity>), BundleId>,
 }
 
 impl Bundles {
@@ -227,30 +227,30 @@ impl Bundles {
         self.bundle_ids.get(&type_id).cloned()
     }
 
-    pub fn get_relationship_bundle_id(
+    pub fn get_relation_bundle_id(
         &self,
         relation_kind: EntityAtomKindId,
         relation_target: Option<Entity>,
     ) -> Option<BundleId> {
-        self.relationship_bundle_ids
+        self.relation_bundle_ids
             .get(&(relation_kind, relation_target))
             .copied()
     }
 
-    pub(crate) fn init_relationship_info<'a>(
+    pub(crate) fn init_relation_info<'a>(
         &'a mut self,
         relation_kind: &EntityAtomKindInfo,
         relation_target: Option<Entity>,
     ) -> &'a BundleInfo {
         let bundle_infos = &mut self.bundle_infos;
         let id = self
-            .relationship_bundle_ids
+            .relation_bundle_ids
             .entry((relation_kind.id(), relation_target))
             .or_insert_with(|| {
                 let id = BundleId(bundle_infos.len());
                 let bundle_info = BundleInfo {
                     id,
-                    relationship_ids: vec![(relation_kind.id(), relation_target)],
+                    relation_ids: vec![(relation_kind.id(), relation_target)],
                     storage_types: vec![relation_kind.data_layout().storage_type()],
                 };
                 bundle_infos.push(bundle_info);
@@ -300,7 +300,7 @@ fn initialize_bundle(
 
     BundleInfo {
         id,
-        relationship_ids: component_ids,
+        relation_ids: component_ids,
         storage_types,
     }
 }
