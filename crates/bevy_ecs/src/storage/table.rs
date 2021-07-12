@@ -33,7 +33,7 @@ impl TableId {
 
 #[derive(Debug)]
 pub struct Column {
-    pub(crate) relationship: (EntityAtomKindId, Option<Entity>),
+    pub(crate) relation: (EntityAtomKindId, Option<Entity>),
     pub(crate) data: BlobVec,
     pub(crate) ticks: Vec<UnsafeCell<ComponentTicks>>,
 }
@@ -46,7 +46,7 @@ impl Column {
         capacity: usize,
     ) -> Self {
         Column {
-            relationship: (relation_kind.id(), target),
+            relation: (relation_kind.id(), target),
             data: BlobVec::new(
                 relation_kind.data_layout().layout(),
                 relation_kind.data_layout().drop(),
@@ -286,7 +286,7 @@ impl Table {
         for column in self.columns_mut() {
             let (data, ticks) = column.swap_remove_and_forget_unchecked(row);
             if let Some(new_column) =
-                new_table.get_column_mut(column.relationship.0, column.relationship.1)
+                new_table.get_column_mut(column.relation.0, column.relation.1)
             {
                 new_column.initialize(new_row, data, ticks);
             }
@@ -317,7 +317,7 @@ impl Table {
         let new_row = new_table.allocate(self.entities.swap_remove(row));
         for column in self.columns_mut() {
             if let Some(new_column) =
-                new_table.get_column_mut(column.relationship.0, column.relationship.1)
+                new_table.get_column_mut(column.relation.0, column.relation.1)
             {
                 let (data, ticks) = column.swap_remove_and_forget_unchecked(row);
                 new_column.initialize(new_row, data, ticks);
@@ -351,7 +351,7 @@ impl Table {
         let new_row = new_table.allocate(self.entities.swap_remove(row));
         for column in self.columns_mut() {
             let new_column = new_table
-                .get_column_mut(column.relationship.0, column.relationship.1)
+                .get_column_mut(column.relation.0, column.relation.1)
                 .unwrap();
             let (data, ticks) = column.swap_remove_and_forget_unchecked(row);
             new_column.initialize(new_row, data, ticks);
