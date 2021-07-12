@@ -349,12 +349,12 @@ where
     }
 
     #[inline]
-    fn component_access(&self) -> &Access<EntityAtomKindId> {
+    fn entity_atom_access(&self) -> &Access<EntityAtomKindId> {
         &self.system_meta.component_access_set.combined_access()
     }
 
     #[inline]
-    fn archetype_component_access(&self) -> &Access<ArchetypeComponentId> {
+    fn archetype_atom_access(&self) -> &Access<ArchetypeComponentId> {
         &self.system_meta.archetype_component_access
     }
 
