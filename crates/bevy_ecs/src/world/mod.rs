@@ -17,7 +17,7 @@ use crate::{
     bundle::{Bundle, Bundles},
     change_detection::Ticks,
     component::{
-        Component, ComponentDescriptor, ComponentTicks, Components, EntityAtomKindId, RelationsError,
+        Component, ComponentDescriptor, ComponentTicks, Components, EntityAtomKindId, RegistrationError,
         StorageType,
     },
     entity::{Entities, Entity},
@@ -157,7 +157,7 @@ impl World {
     pub fn register_component(
         &mut self,
         descriptor: ComponentDescriptor,
-    ) -> Result<EntityAtomKindId, RelationsError> {
+    ) -> Result<EntityAtomKindId, RegistrationError> {
         let storage_type = descriptor.storage_type();
         let relation_kind = self.components.new_component_kind(descriptor)?;
 
@@ -189,7 +189,7 @@ impl World {
     pub fn register_relation(
         &mut self,
         descriptor: ComponentDescriptor,
-    ) -> Result<EntityAtomKindId, RelationsError> {
+    ) -> Result<EntityAtomKindId, RegistrationError> {
         Ok(self.components.new_relationship_kind(descriptor)?.id())
     }
 

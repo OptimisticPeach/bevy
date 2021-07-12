@@ -190,26 +190,26 @@ pub struct Components {
 }
 
 #[derive(Debug, Error)]
-pub enum RelationsError {
+pub enum RegistrationError {
     #[error("A component of type {name:?} ({type_id:?}) already exists")]
     ComponentAlreadyExists { type_id: TypeId, name: String },
     #[error("A resource of type {name:?} ({type_id:?}) already exists")]
     ResourceAlreadyExists { type_id: TypeId, name: String },
     #[error("A relation of type {name:?} ({type_id:?}) already exists")]
-    RelationshipAlreadyExists { type_id: TypeId, name: String },
+    RelationAlreadyExists { type_id: TypeId, name: String },
 }
 
 impl Components {
     pub fn new_relationship_kind(
         &mut self,
         layout: ComponentDescriptor,
-    ) -> Result<&EntityAtomKindInfo, RelationsError> {
+    ) -> Result<&EntityAtomKindInfo, RegistrationError> {
         let id = EntityAtomKindId(self.kinds.len());
         if self
             .relationship_indices
             .contains_key(&layout.type_id().unwrap())
         {
-            return Err(RelationsError::RelationshipAlreadyExists {
+            return Err(RegistrationError::RelationAlreadyExists {
                 type_id: layout.type_id().unwrap(),
                 name: layout.name,
             });
@@ -223,13 +223,13 @@ impl Components {
     pub fn new_component_kind(
         &mut self,
         layout: ComponentDescriptor,
-    ) -> Result<&EntityAtomKindInfo, RelationsError> {
+    ) -> Result<&EntityAtomKindInfo, RegistrationError> {
         let id = EntityAtomKindId(self.kinds.len());
         if self
             .component_indices
             .contains_key(&layout.type_id().unwrap())
         {
-            return Err(RelationsError::ComponentAlreadyExists {
+            return Err(RegistrationError::ComponentAlreadyExists {
                 type_id: layout.type_id().unwrap(),
                 name: layout.name,
             });
@@ -242,13 +242,13 @@ impl Components {
     pub fn new_resource_kind(
         &mut self,
         layout: ComponentDescriptor,
-    ) -> Result<&EntityAtomKindInfo, RelationsError> {
+    ) -> Result<&EntityAtomKindInfo, RegistrationError> {
         let id = EntityAtomKindId(self.kinds.len());
         if self
             .resource_indices
             .contains_key(&layout.type_id().unwrap())
         {
-            return Err(RelationsError::ResourceAlreadyExists {
+            return Err(RegistrationError::ResourceAlreadyExists {
                 type_id: layout.type_id().unwrap(),
                 name: layout.name,
             });
