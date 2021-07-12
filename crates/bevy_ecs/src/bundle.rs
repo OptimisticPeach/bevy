@@ -143,7 +143,7 @@ impl BundleInfo {
         // bundle_info.component_ids are also in "bundle order"
         let mut bundle_component = 0;
         bundle.get_components(&mut |component_ptr| {
-            self.write_relationship(
+            self.write_relation(
                 sparse_sets,
                 entity,
                 table,
@@ -158,22 +158,22 @@ impl BundleInfo {
     }
 
     #[allow(clippy::too_many_arguments)]
-    pub(crate) unsafe fn write_relationship(
+    pub(crate) unsafe fn write_relation(
         &self,
         sparse_sets: &mut SparseSets,
         entity: Entity,
         table: &mut Table,
         table_row: usize,
         bundle_status: &[ComponentStatus],
-        relationship_index: usize,
+        relation_index: usize,
         component_ptr: *mut u8,
         change_tick: u32,
     ) {
-        let (kind_id, target) = self.relation_ids[relationship_index];
-        match self.storage_types[relationship_index] {
+        let (kind_id, target) = self.relation_ids[relation_index];
+        match self.storage_types[relation_index] {
             StorageType::Table => {
                 let column = table.get_column_mut(kind_id, target).unwrap();
-                match bundle_status[relationship_index] {
+                match bundle_status[relation_index] {
                     ComponentStatus::Added => {
                         column.initialize(
                             table_row,

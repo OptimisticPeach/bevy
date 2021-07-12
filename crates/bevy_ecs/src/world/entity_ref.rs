@@ -91,7 +91,7 @@ impl<'w> EntityRef<'w> {
     pub fn get_relation<T: Component>(&self, target: Entity) -> Option<&'w T> {
         // SAFE: entity location is valid and returned component is of type T
         unsafe {
-            get_relationship_with_type(
+            get_relation_with_type(
                 self.world,
                 TypeId::of::<T>(),
                 target,
@@ -133,7 +133,7 @@ impl<'w> EntityRef<'w> {
         last_change_tick: u32,
         change_tick: u32,
     ) -> Option<Mut<'w, T>> {
-        get_relationship_and_ticks_with_type(
+        get_relation_and_ticks_with_type(
             self.world,
             TypeId::of::<T>(),
             target,
@@ -230,7 +230,7 @@ impl<'w> EntityMut<'w> {
     pub fn get_relation<T: Component>(&self, target: Entity) -> Option<&'w T> {
         // SAFE: entity location is valid and returned component is of type T
         unsafe {
-            get_relationship_with_type(
+            get_relation_with_type(
                 self.world,
                 TypeId::of::<T>(),
                 target,
@@ -268,7 +268,7 @@ impl<'w> EntityMut<'w> {
         // SAFE: world access is unique, entity location is valid, and returned component is of type
         // T
         unsafe {
-            get_relationship_and_ticks_with_type(
+            get_relation_and_ticks_with_type(
                 self.world,
                 TypeId::of::<T>(),
                 target,
@@ -310,7 +310,7 @@ impl<'w> EntityMut<'w> {
         &self,
         target: Entity,
     ) -> Option<Mut<'w, T>> {
-        get_relationship_and_ticks_with_type(
+        get_relation_and_ticks_with_type(
             self.world,
             TypeId::of::<T>(),
             target,
@@ -394,7 +394,7 @@ impl<'w> EntityMut<'w> {
         let table = &mut self.world.storages.tables[archetype.table_id()];
         let table_row = archetype.entity_table_row(new_location.index);
         unsafe {
-            bundle_info.write_relationship(
+            bundle_info.write_relation(
                 &mut self.world.storages.sparse_sets,
                 self.entity,
                 table,
@@ -950,7 +950,7 @@ unsafe fn get_component_with_type(
 
 /// # Safety
 /// `entity_location` must be within bounds of an archetype that exists.
-unsafe fn get_relationship_with_type(
+unsafe fn get_relation_with_type(
     world: &World,
     type_id: TypeId,
     target: Entity,
@@ -975,7 +975,7 @@ pub(crate) unsafe fn get_component_and_ticks_with_type(
 
 /// # Safety
 /// `entity_location` must be within bounds of an archetype that exists.
-pub(crate) unsafe fn get_relationship_and_ticks_with_type(
+pub(crate) unsafe fn get_relation_and_ticks_with_type(
     world: &World,
     type_id: TypeId,
     target: Entity,
