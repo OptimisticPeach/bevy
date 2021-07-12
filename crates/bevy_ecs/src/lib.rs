@@ -1175,7 +1175,7 @@ mod tests {
         expected.add_write(i32_id);
         expected.add_read(f64_id);
         assert!(
-            query.component_access.eq(&expected),
+            query.entity_atom_access.eq(&expected),
             "ComponentId access from query fetch and query filter should be combined"
         );
     }

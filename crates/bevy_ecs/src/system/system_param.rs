@@ -126,12 +126,12 @@ where
             std::any::type_name::<Q>(),
             std::any::type_name::<F>(),
             &system_meta.component_access_set,
-            &state.component_access,
+            &state.entity_atom_access,
             world,
         );
         system_meta
             .component_access_set
-            .add(state.component_access.clone());
+            .add(state.entity_atom_access.clone());
         system_meta
             .archetype_component_access
             .extend(&state.archetype_component_access);

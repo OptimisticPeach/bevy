@@ -68,7 +68,7 @@ where
 {
     world_id: WorldId,
     pub(crate) archetype_component_access: Access<ArchetypeComponentId>,
-    pub(crate) component_access: FilteredAccess<EntityAtomKindId>,
+    pub(crate) entity_atom_access: FilteredAccess<EntityAtomKindId>,
 
     pub(crate) current_relation_filter: QueryRelationFilter<Q, F>,
     pub(crate) relation_filter_accesses: HashMap<QueryRelationFilter<Q, F>, QueryAccessCache>,
@@ -102,7 +102,7 @@ where
             world_id: world.id(),
             fetch_state,
             filter_state,
-            component_access,
+            entity_atom_access: component_access,
 
             current_relation_filter: Default::default(),
             relation_filter_accesses: HashMap::new(),
