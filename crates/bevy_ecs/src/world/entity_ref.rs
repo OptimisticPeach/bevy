@@ -70,7 +70,7 @@ impl<'w> EntityRef<'w> {
 
     #[inline]
     pub fn contains_id(&self, component_id: EntityDataKindId, target: Option<Entity>) -> bool {
-        contains_entity_atom_with_id(self.world, component_id, target, self.location)
+        contains_entity_data_with_id(self.world, component_id, target, self.location)
     }
 
     #[inline]
@@ -209,7 +209,7 @@ impl<'w> EntityMut<'w> {
 
     #[inline]
     pub fn contains_id(&self, component_id: EntityDataKindId, target: Option<Entity>) -> bool {
-        contains_entity_atom_with_id(self.world, component_id, target, self.location)
+        contains_entity_data_with_id(self.world, component_id, target, self.location)
     }
 
     #[inline]
@@ -510,7 +510,7 @@ impl<'w> EntityMut<'w> {
             T::from_components(|| {
                 let component_id = bundle_components.next().unwrap();
                 // SAFE: entity location is valid and table row is removed below
-                take_entity_atom(
+                take_entity_data(
                     entity_atoms,
                     storages,
                     old_archetype,
@@ -601,7 +601,7 @@ impl<'w> EntityMut<'w> {
         // SAFE: bundle components are iterated in order, which guarantees that the component type matches
         let result = unsafe {
             // SAFE: entity location is valid and table row is removed below
-            core::ptr::read(take_entity_atom(
+            core::ptr::read(take_entity_data(
                 entity_atoms,
                 storages,
                 old_archetype,
@@ -825,7 +825,7 @@ impl<'w> EntityMut<'w> {
 /// `entity_location` must be within bounds of the given archetype and `entity` must exist inside
 /// the archetype
 #[inline]
-unsafe fn get_entity_atom(
+unsafe fn get_entity_data(
     world: &World,
     relation_kind: EntityDataKindId,
     relation_target: Option<Entity>,
@@ -853,7 +853,7 @@ unsafe fn get_entity_atom(
 /// # Safety
 /// Caller must ensure that `relationship_id` is valid
 #[inline]
-unsafe fn get_entity_atom_and_ticks(
+unsafe fn get_entity_data_and_ticks(
     world: &World,
     relation_kind: EntityDataKindId,
     relation_target: Option<Entity>,
@@ -893,7 +893,7 @@ unsafe fn get_entity_atom_and_ticks(
 /// - The relevant table row **must be removed** by the caller once all components are taken
 #[inline]
 #[allow(clippy::too_many_arguments)]
-unsafe fn take_entity_atom(
+unsafe fn take_entity_data(
     entity_atoms: &Components,
     storages: &mut Storages,
     archetype: &Archetype,
@@ -945,7 +945,7 @@ unsafe fn get_component_with_type(
     location: EntityLocation,
 ) -> Option<*mut u8> {
     let kind = world.components.get_component_kind(type_id)?;
-    get_entity_atom(world, kind.id(), None, entity, location)
+    get_entity_data(world, kind.id(), None, entity, location)
 }
 
 /// # Safety
@@ -958,7 +958,7 @@ unsafe fn get_relation_with_type(
     location: EntityLocation,
 ) -> Option<*mut u8> {
     let kind = world.components.get_relation_kind(type_id)?;
-    get_entity_atom(world, kind.id(), Some(target), entity, location)
+    get_entity_data(world, kind.id(), Some(target), entity, location)
 }
 
 /// # Safety
@@ -970,7 +970,7 @@ pub(crate) unsafe fn get_component_and_ticks_with_type(
     location: EntityLocation,
 ) -> Option<(*mut u8, *mut ComponentTicks)> {
     let kind_info = world.components.get_component_kind(type_id)?;
-    get_entity_atom_and_ticks(world, kind_info.id(), None, entity, location)
+    get_entity_data_and_ticks(world, kind_info.id(), None, entity, location)
 }
 
 /// # Safety
@@ -983,18 +983,18 @@ pub(crate) unsafe fn get_relation_and_ticks_with_type(
     location: EntityLocation,
 ) -> Option<(*mut u8, *mut ComponentTicks)> {
     let kind_info = world.components.get_relation_kind(type_id)?;
-    get_entity_atom_and_ticks(world, kind_info.id(), Some(target), entity, location)
+    get_entity_data_and_ticks(world, kind_info.id(), Some(target), entity, location)
 }
 
 fn contains_component_with_type(world: &World, type_id: TypeId, location: EntityLocation) -> bool {
     if let Some(kind) = world.components.get_component_kind(type_id) {
-        contains_entity_atom_with_id(world, kind.id(), None, location)
+        contains_entity_data_with_id(world, kind.id(), None, location)
     } else {
         false
     }
 }
 
-fn contains_entity_atom_with_id(
+fn contains_entity_data_with_id(
     world: &World,
     relation_kind: EntityDataKindId,
     relation_target: Option<Entity>,
