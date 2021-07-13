@@ -498,7 +498,7 @@ fn conflict_without_relation() {
     let q1 = world.query::<(&mut u32, &Relation<u64>)>();
     let q2 = world.query_filtered::<&mut u32, Without<Relation<u64>>>();
     assert_eq!(
-        q1.entity_atom_access.is_compatible(&q2.entity_atom_access),
+        q1.entity_data_access.is_compatible(&q2.entity_data_access),
         false
     );
 }
