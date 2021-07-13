@@ -882,7 +882,7 @@ impl World {
                     },
                 );
                 *archetype_component_count += 1;
-                let component_info = components.get_entity_atom_kind(component_id);
+                let component_info = components.get_entity_data_kind(component_id);
                 Column::with_capacity(component_info, None, 1)
             })
     }

@@ -524,7 +524,7 @@ impl Tables {
         *self.table_ids.entry(hash).or_insert_with(move || {
             let mut table = Table::with_capacity(0, component_ids.len());
             for component_id in component_ids.iter() {
-                table.add_column(components.get_entity_atom_kind(component_id.0), component_id.1);
+                table.add_column(components.get_entity_data_kind(component_id.0), component_id.1);
             }
             tables.push(table);
             TableId(tables.len() - 1)

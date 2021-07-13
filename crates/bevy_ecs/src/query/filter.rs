@@ -627,7 +627,7 @@ unsafe impl<T: Bundle> FetchState for WithBundleState<T> {
             relation_kind_ids: bundle_info.relation_ids.clone(),
             is_dense: bundle_info.relation_ids.iter().all(|(kind_id, _)| {
                 components
-                    .get_entity_atom_kind(*kind_id)
+                    .get_entity_data_kind(*kind_id)
                     .data_layout()
                     .storage_type()
                     == StorageType::Table

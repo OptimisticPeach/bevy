@@ -833,7 +833,7 @@ unsafe fn get_entity_atom(
     location: EntityLocation,
 ) -> Option<*mut u8> {
     let archetype = &world.archetypes[location.archetype_id];
-    let kind_info = world.components.get_entity_atom_kind(relation_kind);
+    let kind_info = world.components.get_entity_data_kind(relation_kind);
     match kind_info.data_layout().storage_type() {
         StorageType::Table => {
             let table = &world.storages.tables[archetype.table_id()];
@@ -861,7 +861,7 @@ unsafe fn get_entity_atom_and_ticks(
     location: EntityLocation,
 ) -> Option<(*mut u8, *mut ComponentTicks)> {
     let archetype = &world.archetypes[location.archetype_id];
-    let kind_info = world.components.get_entity_atom_kind(relation_kind);
+    let kind_info = world.components.get_entity_data_kind(relation_kind);
     match kind_info.data_layout().storage_type() {
         StorageType::Table => {
             let table = &world.storages.tables[archetype.table_id()];
@@ -906,7 +906,7 @@ unsafe fn take_entity_atom(
     entity: Entity,
     location: EntityLocation,
 ) -> *mut u8 {
-    let kind_info = entity_atoms.get_entity_atom_kind(relation_kind);
+    let kind_info = entity_atoms.get_entity_data_kind(relation_kind);
 
     let targets = removed_relations.get_or_insert_with(relation_kind, Default::default);
     match relation_target {
@@ -1032,7 +1032,7 @@ pub(crate) unsafe fn add_bundle_to_archetype(
             bundle_status.push(ComponentStatus::Mutated);
         } else {
             bundle_status.push(ComponentStatus::Added);
-            let kind_info = components.get_entity_atom_kind(kind_id);
+            let kind_info = components.get_entity_data_kind(kind_id);
             match kind_info.data_layout().storage_type() {
                 StorageType::Table => new_table_components.push((kind_id, target)),
                 StorageType::SparseSet => {
@@ -1135,7 +1135,7 @@ unsafe fn remove_bundle_from_archetype(
             let mut removed_sparse_set_components = Vec::new();
             for (kind_id, target) in bundle_info.relation_ids.iter().cloned() {
                 if current_archetype.contains(kind_id, target) {
-                    let component_info = components.get_entity_atom_kind(kind_id);
+                    let component_info = components.get_entity_data_kind(kind_id);
                     match component_info.data_layout().storage_type() {
                         StorageType::Table => removed_table_components.push((kind_id, target)),
                         StorageType::SparseSet => {

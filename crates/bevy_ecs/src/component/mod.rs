@@ -258,7 +258,7 @@ impl Components {
         Ok(self.kinds.last().unwrap())
     }
 
-    pub fn get_entity_atom_kind(&self, id: EntityDataKindId) -> &EntityDataKindInfo {
+    pub fn get_entity_data_kind(&self, id: EntityDataKindId) -> &EntityDataKindInfo {
         self.kinds.get(id.0).unwrap()
     }
 

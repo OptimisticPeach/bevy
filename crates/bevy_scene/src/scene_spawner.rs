@@ -160,7 +160,7 @@ impl SceneSpawner {
                         .entry(*scene_entity)
                         .or_insert_with(|| world.spawn().id());
                     for (kind_id, _) in archetype.components() {
-                        let component_info = scene.world.components().get_entity_atom_kind(kind_id);
+                        let component_info = scene.world.components().get_entity_data_kind(kind_id);
 
                         let reflect_component = type_registry
                             .get(component_info.data_layout().type_id().unwrap())
