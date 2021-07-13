@@ -398,7 +398,7 @@ impl System for RunOnce {
         &self.entity_data_access
     }
 
-    fn archetype_atom_access(&self) -> &Access<ArchetypeComponentId> {
+    fn archetype_data_access(&self) -> &Access<ArchetypeComponentId> {
         &self.archetype_data_access
     }
 

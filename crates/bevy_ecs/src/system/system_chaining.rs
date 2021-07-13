@@ -70,12 +70,12 @@ impl<SystemA: System, SystemB: System<In = SystemA::Out>> System for ChainSystem
         self.system_b.new_archetype(archetype);
 
         self.archetype_component_access
-            .extend(self.system_a.archetype_atom_access());
+            .extend(self.system_a.archetype_data_access());
         self.archetype_component_access
-            .extend(self.system_b.archetype_atom_access());
+            .extend(self.system_b.archetype_data_access());
     }
 
-    fn archetype_atom_access(&self) -> &Access<ArchetypeComponentId> {
+    fn archetype_data_access(&self) -> &Access<ArchetypeComponentId> {
         &self.archetype_component_access
     }
 

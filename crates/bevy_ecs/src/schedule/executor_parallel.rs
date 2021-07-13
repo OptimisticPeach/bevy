@@ -161,7 +161,7 @@ impl ParallelExecutor {
                 let system = container.system_mut();
                 system.new_archetype(archetype);
                 meta.archetype_component_access
-                    .extend(system.archetype_atom_access());
+                    .extend(system.archetype_data_access());
             }
         }
     }

@@ -156,8 +156,8 @@ impl System for FixedTimestep {
         self.internal_system.new_archetype(archetype);
     }
 
-    fn archetype_atom_access(&self) -> &Access<ArchetypeComponentId> {
-        self.internal_system.archetype_atom_access()
+    fn archetype_data_access(&self) -> &Access<ArchetypeComponentId> {
+        self.internal_system.archetype_data_access()
     }
 
     fn entity_data_access(&self) -> &Access<EntityDataKindId> {

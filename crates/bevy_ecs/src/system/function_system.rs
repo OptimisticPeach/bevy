@@ -354,7 +354,7 @@ where
     }
 
     #[inline]
-    fn archetype_atom_access(&self) -> &Access<ArchetypeComponentId> {
+    fn archetype_data_access(&self) -> &Access<ArchetypeComponentId> {
         &self.system_meta.archetype_component_access
     }
 
