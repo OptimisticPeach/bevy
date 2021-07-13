@@ -3,7 +3,7 @@ pub use bevy_ecs_macros::Bundle;
 use crate::{
     archetype::ComponentStatus,
     component::{
-        Component, ComponentTicks, Components, EntityDataKindId, EntityAtomKindInfo, StorageType,
+        Component, ComponentTicks, Components, EntityDataKindId, EntityDataKindInfo, StorageType,
         TypeInfo,
     },
     entity::Entity,
@@ -239,7 +239,7 @@ impl Bundles {
 
     pub(crate) fn init_relation_info<'a>(
         &'a mut self,
-        relation_kind: &EntityAtomKindInfo,
+        relation_kind: &EntityDataKindInfo,
         relation_target: Option<Entity>,
     ) -> &'a BundleInfo {
         let bundle_infos = &mut self.bundle_infos;

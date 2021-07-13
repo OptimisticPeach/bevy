@@ -164,12 +164,12 @@ impl SparseSetIndex for EntityDataKindId {
 }
 
 #[derive(Debug)]
-pub struct EntityAtomKindInfo {
+pub struct EntityDataKindInfo {
     data: ComponentDescriptor,
     id: EntityDataKindId,
 }
 
-impl EntityAtomKindInfo {
+impl EntityDataKindInfo {
     pub fn data_layout(&self) -> &ComponentDescriptor {
         &self.data
     }
@@ -181,7 +181,7 @@ impl EntityAtomKindInfo {
 
 #[derive(Debug, Default)]
 pub struct Components {
-    kinds: Vec<EntityAtomKindInfo>,
+    kinds: Vec<EntityDataKindInfo>,
     // These are only used by bevy. Scripting/dynamic components should
     // use their own hashmap to lookup CustomId -> RelationKindId
     component_indices: HashMap<TypeId, EntityDataKindId, fxhash::FxBuildHasher>,
@@ -203,7 +203,7 @@ impl Components {
     pub fn new_relation_kind(
         &mut self,
         layout: ComponentDescriptor,
-    ) -> Result<&EntityAtomKindInfo, RegistrationError> {
+    ) -> Result<&EntityDataKindInfo, RegistrationError> {
         let id = EntityDataKindId(self.kinds.len());
         if self
             .relation_indices
@@ -216,14 +216,14 @@ impl Components {
         }
         self.relation_indices
             .insert(layout.type_id().unwrap(), id);
-        self.kinds.push(EntityAtomKindInfo { data: layout, id });
+        self.kinds.push(EntityDataKindInfo { data: layout, id });
         Ok(self.kinds.last().unwrap())
     }
 
     pub fn new_component_kind(
         &mut self,
         layout: ComponentDescriptor,
-    ) -> Result<&EntityAtomKindInfo, RegistrationError> {
+    ) -> Result<&EntityDataKindInfo, RegistrationError> {
         let id = EntityDataKindId(self.kinds.len());
         if self
             .component_indices
@@ -235,14 +235,14 @@ impl Components {
             });
         }
         self.component_indices.insert(layout.type_id().unwrap(), id);
-        self.kinds.push(EntityAtomKindInfo { data: layout, id });
+        self.kinds.push(EntityDataKindInfo { data: layout, id });
         Ok(self.kinds.last().unwrap())
     }
 
     pub fn new_resource_kind(
         &mut self,
         layout: ComponentDescriptor,
-    ) -> Result<&EntityAtomKindInfo, RegistrationError> {
+    ) -> Result<&EntityDataKindInfo, RegistrationError> {
         let id = EntityDataKindId(self.kinds.len());
         if self
             .resource_indices
@@ -254,25 +254,25 @@ impl Components {
             });
         }
         self.resource_indices.insert(layout.type_id().unwrap(), id);
-        self.kinds.push(EntityAtomKindInfo { data: layout, id });
+        self.kinds.push(EntityDataKindInfo { data: layout, id });
         Ok(self.kinds.last().unwrap())
     }
 
-    pub fn get_entity_atom_kind(&self, id: EntityDataKindId) -> &EntityAtomKindInfo {
+    pub fn get_entity_atom_kind(&self, id: EntityDataKindId) -> &EntityDataKindInfo {
         self.kinds.get(id.0).unwrap()
     }
 
-    pub fn get_component_kind(&self, type_id: TypeId) -> Option<&EntityAtomKindInfo> {
+    pub fn get_component_kind(&self, type_id: TypeId) -> Option<&EntityDataKindInfo> {
         let id = self.component_indices.get(&type_id).copied()?;
         Some(&self.kinds[id.0])
     }
 
-    pub fn get_resource_kind(&self, type_id: TypeId) -> Option<&EntityAtomKindInfo> {
+    pub fn get_resource_kind(&self, type_id: TypeId) -> Option<&EntityDataKindInfo> {
         let id = self.resource_indices.get(&type_id).copied()?;
         Some(&self.kinds[id.0])
     }
 
-    pub fn get_relation_kind(&self, type_id: TypeId) -> Option<&EntityAtomKindInfo> {
+    pub fn get_relation_kind(&self, type_id: TypeId) -> Option<&EntityDataKindInfo> {
         let id = self.relation_indices.get(&type_id).copied()?;
         Some(&self.kinds[id.0])
     }
@@ -280,7 +280,7 @@ impl Components {
     pub fn get_relation_kind_or_insert(
         &mut self,
         layout: ComponentDescriptor,
-    ) -> &EntityAtomKindInfo {
+    ) -> &EntityDataKindInfo {
         match self
             .relation_indices
             .get(&layout.type_id().unwrap())
@@ -294,7 +294,7 @@ impl Components {
     pub fn get_component_kind_or_insert(
         &mut self,
         layout: ComponentDescriptor,
-    ) -> &EntityAtomKindInfo {
+    ) -> &EntityDataKindInfo {
         match self
             .component_indices
             .get(&layout.type_id().unwrap())
@@ -308,7 +308,7 @@ impl Components {
     pub fn get_resource_kind_or_insert(
         &mut self,
         layout: ComponentDescriptor,
-    ) -> &EntityAtomKindInfo {
+    ) -> &EntityDataKindInfo {
         match self
             .resource_indices
             .get(&layout.type_id().unwrap())
