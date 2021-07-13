@@ -1711,7 +1711,7 @@ macro_rules! impl_tuple_fetch {
                 ($($name::init(_world),)*)
             }
 
-            fn update_component_access(&self, _access: &mut FilteredAccess<RelationKindId>) {
+            fn update_component_access(&self, _access: &mut FilteredAccess<EntityDataKindId>) {
                 let ($($name,)*) = self;
                 $($name.update_component_access(_access);)*
             }

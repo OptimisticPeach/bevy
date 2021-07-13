@@ -856,7 +856,7 @@ macro_rules! impl_query_filter_tuple {
                 Or(($($filter::init(world),)*))
             }
 
-            fn update_component_access(&self, access: &mut FilteredAccess<RelationKindId>) {
+            fn update_component_access(&self, access: &mut FilteredAccess<EntityDataKindId>) {
                 let ($($filter,)*) = &self.0;
                 $($filter.update_component_access(access);)*
             }
@@ -915,7 +915,7 @@ macro_rules! impl_tick_filter {
 
         $(#[$state_meta])*
         pub struct $state_name<T> {
-            component_id: RelationKindId,
+            component_id: EntityDataKindId,
             storage_type: StorageType,
             marker: PhantomData<T>,
         }
@@ -945,7 +945,7 @@ macro_rules! impl_tick_filter {
             }
 
             #[inline]
-            fn update_component_access(&self, access: &mut FilteredAccess<RelationKindId>) {
+            fn update_component_access(&self, access: &mut FilteredAccess<EntityDataKindId>) {
                 if access.access().has_write(self.component_id) {
                     panic!("$state_name<{}> conflicts with a previous access in this query. Shared access cannot coincide with exclusive access.",
                         std::any::type_name::<T>());
