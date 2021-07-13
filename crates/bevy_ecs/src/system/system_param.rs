@@ -121,20 +121,20 @@ where
 
     fn init(world: &mut World, system_meta: &mut SystemMeta, _config: Self::Config) -> Self {
         let state = QueryState::new(world);
-        assert_component_access_compatibility(
+        assert_entity_data_access_compatibility(
             &system_meta.name,
             std::any::type_name::<Q>(),
             std::any::type_name::<F>(),
-            &system_meta.component_access_set,
+            &system_meta.entity_data_access_set,
             &state.entity_data_access,
             world,
         );
         system_meta
-            .component_access_set
+            .entity_data_access_set
             .add(state.entity_data_access.clone());
         system_meta
-            .archetype_component_access
-            .extend(&state.archetype_component_access);
+            .archetype_entity_data_access
+            .extend(&state.archetype_entity_data_access);
         state
     }
 
@@ -143,7 +143,7 @@ where
             Self::new_archetype(
                 &self.fetch_state,
                 &self.filter_state,
-                &mut self.archetype_component_access,
+                &mut self.archetype_entity_data_access,
                 &*relation_filter,
                 cache,
                 archetype,
@@ -151,8 +151,8 @@ where
         }
 
         system_meta
-            .archetype_component_access
-            .extend(&self.archetype_component_access);
+            .archetype_entity_data_access
+            .extend(&self.archetype_entity_data_access);
     }
 
     fn default_config() {}
@@ -175,7 +175,7 @@ where
     }
 }
 
-fn assert_component_access_compatibility(
+fn assert_entity_data_access_compatibility(
     system_name: &str,
     query_type: &'static str,
     filter_type: &'static str,
@@ -280,7 +280,7 @@ unsafe impl<T: Component> SystemParamState for ResState<T> {
 
     fn init(world: &mut World, system_meta: &mut SystemMeta, _config: Self::Config) -> Self {
         let component_id = world.initialize_resource::<T>();
-        let combined_access = system_meta.component_access_set.combined_access_mut();
+        let combined_access = system_meta.entity_data_access_set.combined_access_mut();
         if combined_access.has_write(component_id) {
             panic!(
                 "Res<{}> in system {} conflicts with a previous ResMut<{0}> access. Allowing this would break Rust's mutability rules. Consider removing the duplicate access.",
@@ -293,7 +293,7 @@ unsafe impl<T: Component> SystemParamState for ResState<T> {
             .get_archetype_component_id(component_id, None)
             .unwrap();
         system_meta
-            .archetype_component_access
+            .archetype_entity_data_access
             .add_read(archetype_component_id);
         Self {
             component_id,
@@ -390,7 +390,7 @@ unsafe impl<T: Component> SystemParamState for ResMutState<T> {
 
     fn init(world: &mut World, system_meta: &mut SystemMeta, _config: Self::Config) -> Self {
         let component_id = world.initialize_resource::<T>();
-        let combined_access = system_meta.component_access_set.combined_access_mut();
+        let combined_access = system_meta.entity_data_access_set.combined_access_mut();
         if combined_access.has_write(component_id) {
             panic!(
                 "ResMut<{}> in system {} conflicts with a previous ResMut<{0}> access. Allowing this would break Rust's mutability rules. Consider removing the duplicate access.",
@@ -407,7 +407,7 @@ unsafe impl<T: Component> SystemParamState for ResMutState<T> {
             .get_archetype_component_id(component_id, None)
             .unwrap();
         system_meta
-            .archetype_component_access
+            .archetype_entity_data_access
             .add_write(archetype_component_id);
         Self {
             component_id,
@@ -767,7 +767,7 @@ unsafe impl<T: 'static> SystemParamState for NonSendState<T> {
         system_meta.set_non_send();
 
         let component_id = world.initialize_non_send_resource::<T>();
-        let combined_access = system_meta.component_access_set.combined_access_mut();
+        let combined_access = system_meta.entity_data_access_set.combined_access_mut();
         if combined_access.has_write(component_id) {
             panic!(
                 "NonSend<{}> in system {} conflicts with a previous mutable resource access ({0}). Allowing this would break Rust's mutability rules. Consider removing the duplicate access.",
@@ -780,7 +780,7 @@ unsafe impl<T: 'static> SystemParamState for NonSendState<T> {
             .get_archetype_component_id(component_id, None)
             .unwrap();
         system_meta
-            .archetype_component_access
+            .archetype_entity_data_access
             .add_read(archetype_component_id);
         Self {
             component_id,
@@ -888,7 +888,7 @@ unsafe impl<T: 'static> SystemParamState for NonSendMutState<T> {
             ))
             .id();
 
-        let combined_access = system_meta.component_access_set.combined_access_mut();
+        let combined_access = system_meta.entity_data_access_set.combined_access_mut();
         if combined_access.has_write(component_id) {
             panic!(
                 "NonSendMut<{}> in system {} conflicts with a previous mutable resource access ({0}). Allowing this would break Rust's mutability rules. Consider removing the duplicate access.",
@@ -905,7 +905,7 @@ unsafe impl<T: 'static> SystemParamState for NonSendMutState<T> {
             .get_archetype_component_id(component_id, None)
             .unwrap();
         system_meta
-            .archetype_component_access
+            .archetype_entity_data_access
             .add_write(archetype_component_id);
         Self {
             component_id,

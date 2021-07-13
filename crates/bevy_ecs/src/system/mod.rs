@@ -427,7 +427,7 @@ mod tests {
         x.initialize(&mut world);
         y.initialize(&mut world);
 
-        let conflicts = x.component_access().get_conflicts(y.component_access());
+        let conflicts = x.entity_data_access().get_conflicts(y.entity_data_access());
         let b_id = world
             .components()
             .get_resource_kind(TypeId::of::<B>())

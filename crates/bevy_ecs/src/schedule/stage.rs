@@ -723,8 +723,8 @@ fn find_ambiguities(systems: &[impl SystemContainer]) -> Vec<(usize, usize, Vec<
             if !processed.contains(index_b)
                 && all_ambiguity_sets[index_a].is_disjoint(&all_ambiguity_sets[index_b])
             {
-                let a_access = systems[index_a].component_access();
-                let b_access = systems[index_b].component_access();
+                let a_access = systems[index_a].entity_data_access();
+                let b_access = systems[index_b].entity_data_access();
                 if let (Some(a), Some(b)) = (a_access, b_access) {
                     let conflicts = a.get_conflicts(b);
                     if !conflicts.is_empty() {

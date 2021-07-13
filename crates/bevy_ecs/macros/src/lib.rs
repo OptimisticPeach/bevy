@@ -235,22 +235,22 @@ pub fn impl_query_set(_input: TokenStream) -> TokenStream {
                 fn init(world: &mut World, system_meta: &mut SystemMeta, config: Self::Config) -> Self {
                     #(
                         let mut #query = QueryState::<#query, #filter>::new(world);
-                        assert_component_access_compatibility(
+                        assert_entity_data_access_compatibility(
                             &system_meta.name,
                             std::any::type_name::<#query>(),
                             std::any::type_name::<#filter>(),
-                            &system_meta.component_access_set,
-                            &#query.component_access,
+                            &system_meta.entity_data_access_set,
+                            &#query.entity_data_access,
                             world,
                         );
                     )*
                     #(
                         system_meta
-                            .component_access_set
-                            .add(#query.component_access.clone());
+                            .entity_data_access_set
+                            .add(#query.entity_data_access.clone());
                         system_meta
-                            .archetype_component_access
-                            .extend(&#query.archetype_component_access);
+                            .archetype_entity_data_access
+                            .extend(&#query.archetype_entity_data_access);
                     )*
                     QuerySetState((#(#query,)*))
                 }
@@ -262,7 +262,7 @@ pub fn impl_query_set(_input: TokenStream) -> TokenStream {
                             QueryState::<#query, #filter>::new_archetype(
                                 &#query.fetch_state,
                                 &#query.filter_state,
-                                &mut #query.archetype_component_access,
+                                &mut #query.archetype_entity_data_access,
                                 &*relation_filter,
                                 cache,
                                 archetype
@@ -270,8 +270,8 @@ pub fn impl_query_set(_input: TokenStream) -> TokenStream {
                         }
 
                         system_meta
-                            .archetype_component_access
-                            .extend(&#query.archetype_component_access);
+                            .archetype_entity_data_access
+                            .extend(&#query.archetype_entity_data_access);
                     )*
                 }
 

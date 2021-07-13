@@ -425,7 +425,7 @@ where
             .ok_or(QueryComponentError::MissingComponent)?;
         if self
             .state
-            .archetype_component_access
+            .archetype_entity_data_access
             .has_read(archetype_component)
         {
             entity_ref
@@ -476,7 +476,7 @@ where
             .ok_or(QueryComponentError::MissingComponent)?;
         if self
             .state
-            .archetype_component_access
+            .archetype_entity_data_access
             .has_write(archetype_component)
         {
             entity_ref

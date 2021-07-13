@@ -15,8 +15,8 @@ use std::{borrow::Cow, marker::PhantomData};
 pub struct SystemMeta {
     pub(crate) id: SystemId,
     pub(crate) name: Cow<'static, str>,
-    pub(crate) component_access_set: FilteredAccessSet<EntityDataKindId>,
-    pub(crate) archetype_component_access: Access<ArchetypeComponentId>,
+    pub(crate) entity_data_access_set: FilteredAccessSet<EntityDataKindId>,
+    pub(crate) archetype_entity_data_access: Access<ArchetypeComponentId>,
     // NOTE: this must be kept private. making a SystemMeta non-send is irreversible to prevent
     // SystemParams from overriding each other
     is_send: bool,
@@ -27,8 +27,8 @@ impl SystemMeta {
     fn new<T>() -> Self {
         Self {
             name: std::any::type_name::<T>().into(),
-            archetype_component_access: Access::default(),
-            component_access_set: FilteredAccessSet::default(),
+            archetype_entity_data_access: Access::default(),
+            entity_data_access_set: FilteredAccessSet::default(),
             is_send: true,
             id: SystemId::new(),
             last_change_tick: 0,
@@ -350,12 +350,12 @@ where
 
     #[inline]
     fn entity_data_access(&self) -> &Access<EntityDataKindId> {
-        &self.system_meta.component_access_set.combined_access()
+        &self.system_meta.entity_data_access_set.combined_access()
     }
 
     #[inline]
     fn archetype_data_access(&self) -> &Access<ArchetypeComponentId> {
-        &self.system_meta.archetype_component_access
+        &self.system_meta.archetype_entity_data_access
     }
 
     #[inline]
