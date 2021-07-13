@@ -3,7 +3,7 @@ pub use bevy_ecs_macros::Bundle;
 use crate::{
     archetype::ComponentStatus,
     component::{
-        Component, ComponentTicks, Components, EntityAtomKindId, EntityAtomKindInfo, StorageType,
+        Component, ComponentTicks, Components, EntityDataKindId, EntityAtomKindInfo, StorageType,
         TypeInfo,
     },
     entity::Entity,
@@ -120,7 +120,7 @@ impl SparseSetIndex for BundleId {
 
 pub struct BundleInfo {
     pub(crate) id: BundleId,
-    pub(crate) relation_ids: Vec<(EntityAtomKindId, Option<Entity>)>,
+    pub(crate) relation_ids: Vec<(EntityDataKindId, Option<Entity>)>,
     pub(crate) storage_types: Vec<StorageType>,
 }
 
@@ -199,7 +199,7 @@ impl BundleInfo {
     }
 
     #[inline]
-    pub fn components(&self) -> &[(EntityAtomKindId, Option<Entity>)] {
+    pub fn components(&self) -> &[(EntityDataKindId, Option<Entity>)] {
         &self.relation_ids
     }
 
@@ -213,7 +213,7 @@ impl BundleInfo {
 pub struct Bundles {
     bundle_infos: Vec<BundleInfo>,
     bundle_ids: HashMap<TypeId, BundleId>,
-    relation_bundle_ids: HashMap<(EntityAtomKindId, Option<Entity>), BundleId>,
+    relation_bundle_ids: HashMap<(EntityDataKindId, Option<Entity>), BundleId>,
 }
 
 impl Bundles {
@@ -229,7 +229,7 @@ impl Bundles {
 
     pub fn get_relation_bundle_id(
         &self,
-        relation_kind: EntityAtomKindId,
+        relation_kind: EntityDataKindId,
         relation_target: Option<Entity>,
     ) -> Option<BundleId> {
         self.relation_bundle_ids

@@ -150,9 +150,9 @@ impl From<TypeInfo> for ComponentDescriptor {
 }
 
 #[derive(Debug, Copy, Clone, Hash, Eq, PartialEq, PartialOrd, Ord)]
-pub struct EntityAtomKindId(usize);
+pub struct EntityDataKindId(usize);
 
-impl SparseSetIndex for EntityAtomKindId {
+impl SparseSetIndex for EntityDataKindId {
     #[inline]
     fn sparse_set_index(&self) -> usize {
         self.0
@@ -166,7 +166,7 @@ impl SparseSetIndex for EntityAtomKindId {
 #[derive(Debug)]
 pub struct EntityAtomKindInfo {
     data: ComponentDescriptor,
-    id: EntityAtomKindId,
+    id: EntityDataKindId,
 }
 
 impl EntityAtomKindInfo {
@@ -174,7 +174,7 @@ impl EntityAtomKindInfo {
         &self.data
     }
 
-    pub fn id(&self) -> EntityAtomKindId {
+    pub fn id(&self) -> EntityDataKindId {
         self.id
     }
 }
@@ -184,9 +184,9 @@ pub struct Components {
     kinds: Vec<EntityAtomKindInfo>,
     // These are only used by bevy. Scripting/dynamic components should
     // use their own hashmap to lookup CustomId -> RelationKindId
-    component_indices: HashMap<TypeId, EntityAtomKindId, fxhash::FxBuildHasher>,
-    resource_indices: HashMap<TypeId, EntityAtomKindId, fxhash::FxBuildHasher>,
-    relation_indices: HashMap<TypeId, EntityAtomKindId, fxhash::FxBuildHasher>,
+    component_indices: HashMap<TypeId, EntityDataKindId, fxhash::FxBuildHasher>,
+    resource_indices: HashMap<TypeId, EntityDataKindId, fxhash::FxBuildHasher>,
+    relation_indices: HashMap<TypeId, EntityDataKindId, fxhash::FxBuildHasher>,
 }
 
 #[derive(Debug, Error)]
@@ -204,7 +204,7 @@ impl Components {
         &mut self,
         layout: ComponentDescriptor,
     ) -> Result<&EntityAtomKindInfo, RegistrationError> {
-        let id = EntityAtomKindId(self.kinds.len());
+        let id = EntityDataKindId(self.kinds.len());
         if self
             .relation_indices
             .contains_key(&layout.type_id().unwrap())
@@ -224,7 +224,7 @@ impl Components {
         &mut self,
         layout: ComponentDescriptor,
     ) -> Result<&EntityAtomKindInfo, RegistrationError> {
-        let id = EntityAtomKindId(self.kinds.len());
+        let id = EntityDataKindId(self.kinds.len());
         if self
             .component_indices
             .contains_key(&layout.type_id().unwrap())
@@ -243,7 +243,7 @@ impl Components {
         &mut self,
         layout: ComponentDescriptor,
     ) -> Result<&EntityAtomKindInfo, RegistrationError> {
-        let id = EntityAtomKindId(self.kinds.len());
+        let id = EntityDataKindId(self.kinds.len());
         if self
             .resource_indices
             .contains_key(&layout.type_id().unwrap())
@@ -258,7 +258,7 @@ impl Components {
         Ok(self.kinds.last().unwrap())
     }
 
-    pub fn get_entity_atom_kind(&self, id: EntityAtomKindId) -> &EntityAtomKindInfo {
+    pub fn get_entity_atom_kind(&self, id: EntityDataKindId) -> &EntityAtomKindInfo {
         self.kinds.get(id.0).unwrap()
     }
 

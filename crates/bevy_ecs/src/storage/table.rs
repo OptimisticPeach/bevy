@@ -1,5 +1,5 @@
 use crate::{
-    component::{ComponentTicks, Components, EntityAtomKindId, EntityAtomKindInfo},
+    component::{ComponentTicks, Components, EntityDataKindId, EntityAtomKindInfo},
     entity::Entity,
     storage::{BlobVec, SparseSet},
 };
@@ -33,7 +33,7 @@ impl TableId {
 
 #[derive(Debug)]
 pub struct Column {
-    pub(crate) relation: (EntityAtomKindId, Option<Entity>),
+    pub(crate) relation: (EntityDataKindId, Option<Entity>),
     pub(crate) data: BlobVec,
     pub(crate) ticks: Vec<UnsafeCell<ComponentTicks>>,
 }
@@ -197,8 +197,8 @@ impl Column {
 }
 
 pub struct Table {
-    pub(crate) component_columns: SparseSet<EntityAtomKindId, Column>,
-    pub(crate) relation_columns: SparseSet<EntityAtomKindId, StableHashMap<Entity, Column>>,
+    pub(crate) component_columns: SparseSet<EntityDataKindId, Column>,
+    pub(crate) relation_columns: SparseSet<EntityDataKindId, StableHashMap<Entity, Column>>,
     entities: Vec<Entity>,
 }
 
@@ -369,7 +369,7 @@ impl Table {
     #[inline]
     pub fn get_column(
         &self,
-        component_id: EntityAtomKindId,
+        component_id: EntityDataKindId,
         target: Option<Entity>,
     ) -> Option<&Column> {
         match target {
@@ -384,7 +384,7 @@ impl Table {
     #[inline]
     pub fn get_column_mut(
         &mut self,
-        component_id: EntityAtomKindId,
+        component_id: EntityDataKindId,
         target: Option<Entity>,
     ) -> Option<&mut Column> {
         match target {
@@ -397,7 +397,7 @@ impl Table {
     }
 
     #[inline]
-    pub fn has_column(&self, component_id: EntityAtomKindId, target: Option<Entity>) -> bool {
+    pub fn has_column(&self, component_id: EntityDataKindId, target: Option<Entity>) -> bool {
         match target {
             Some(target) => self
                 .relation_columns
@@ -514,7 +514,7 @@ impl Tables {
     /// `component_ids` must contain components that exist in `components`
     pub unsafe fn get_id_or_insert(
         &mut self,
-        component_ids: &[(EntityAtomKindId, Option<Entity>)],
+        component_ids: &[(EntityDataKindId, Option<Entity>)],
         components: &Components,
     ) -> TableId {
         let mut hasher = AHasher::default();

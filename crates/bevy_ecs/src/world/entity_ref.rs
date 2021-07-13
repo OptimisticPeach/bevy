@@ -5,7 +5,7 @@ use crate::{
     bundle::{Bundle, BundleInfo},
     change_detection::Ticks,
     component::{
-        Component, ComponentDescriptor, ComponentTicks, Components, EntityAtomKindId, StorageType,
+        Component, ComponentDescriptor, ComponentTicks, Components, EntityDataKindId, StorageType,
     },
     entity::{Entities, Entity, EntityLocation},
     storage::{SparseSet, Storages},
@@ -69,7 +69,7 @@ impl<'w> EntityRef<'w> {
     }
 
     #[inline]
-    pub fn contains_id(&self, component_id: EntityAtomKindId, target: Option<Entity>) -> bool {
+    pub fn contains_id(&self, component_id: EntityDataKindId, target: Option<Entity>) -> bool {
         contains_entity_atom_with_id(self.world, component_id, target, self.location)
     }
 
@@ -208,7 +208,7 @@ impl<'w> EntityMut<'w> {
     }
 
     #[inline]
-    pub fn contains_id(&self, component_id: EntityAtomKindId, target: Option<Entity>) -> bool {
+    pub fn contains_id(&self, component_id: EntityDataKindId, target: Option<Entity>) -> bool {
         contains_entity_atom_with_id(self.world, component_id, target, self.location)
     }
 
@@ -827,7 +827,7 @@ impl<'w> EntityMut<'w> {
 #[inline]
 unsafe fn get_entity_atom(
     world: &World,
-    relation_kind: EntityAtomKindId,
+    relation_kind: EntityDataKindId,
     relation_target: Option<Entity>,
     entity: Entity,
     location: EntityLocation,
@@ -855,7 +855,7 @@ unsafe fn get_entity_atom(
 #[inline]
 unsafe fn get_entity_atom_and_ticks(
     world: &World,
-    relation_kind: EntityAtomKindId,
+    relation_kind: EntityDataKindId,
     relation_target: Option<Entity>,
     entity: Entity,
     location: EntityLocation,
@@ -898,10 +898,10 @@ unsafe fn take_entity_atom(
     storages: &mut Storages,
     archetype: &Archetype,
     removed_relations: &mut SparseSet<
-        EntityAtomKindId,
+        EntityDataKindId,
         (Vec<Entity>, HashMap<Entity, Vec<Entity>>),
     >,
-    relation_kind: EntityAtomKindId,
+    relation_kind: EntityDataKindId,
     relation_target: Option<Entity>,
     entity: Entity,
     location: EntityLocation,
@@ -996,7 +996,7 @@ fn contains_component_with_type(world: &World, type_id: TypeId, location: Entity
 
 fn contains_entity_atom_with_id(
     world: &World,
-    relation_kind: EntityAtomKindId,
+    relation_kind: EntityDataKindId,
     relation_target: Option<Entity>,
     location: EntityLocation,
 ) -> bool {

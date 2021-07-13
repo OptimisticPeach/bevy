@@ -3,7 +3,7 @@ use bevy_utils::StableHashMap;
 
 use crate::{
     bundle::BundleId,
-    component::{EntityAtomKindId, StorageType},
+    component::{EntityDataKindId, StorageType},
     entity::{Entity, EntityLocation},
     storage::{Column, SparseArray, SparseSet, SparseSetIndex, TableId},
 };
@@ -126,19 +126,19 @@ pub struct Archetype {
     entities: Vec<Entity>,
     edges: Edges,
     table_info: TableInfo,
-    table_components: Cow<'static, [(EntityAtomKindId, Option<Entity>)]>,
-    sparse_set_components: Cow<'static, [(EntityAtomKindId, Option<Entity>)]>,
-    pub(crate) unique_components: SparseSet<EntityAtomKindId, Column>,
-    pub(crate) components: SparseSet<EntityAtomKindId, ArchetypeComponentInfo>,
-    pub(crate) relations: SparseSet<EntityAtomKindId, StableHashMap<Entity, ArchetypeComponentInfo>>,
+    table_components: Cow<'static, [(EntityDataKindId, Option<Entity>)]>,
+    sparse_set_components: Cow<'static, [(EntityDataKindId, Option<Entity>)]>,
+    pub(crate) unique_components: SparseSet<EntityDataKindId, Column>,
+    pub(crate) components: SparseSet<EntityDataKindId, ArchetypeComponentInfo>,
+    pub(crate) relations: SparseSet<EntityDataKindId, StableHashMap<Entity, ArchetypeComponentInfo>>,
 }
 
 impl Archetype {
     pub fn new(
         id: ArchetypeId,
         table_id: TableId,
-        table_components: Cow<'static, [(EntityAtomKindId, Option<Entity>)]>,
-        sparse_set_components: Cow<'static, [(EntityAtomKindId, Option<Entity>)]>,
+        table_components: Cow<'static, [(EntityDataKindId, Option<Entity>)]>,
+        sparse_set_components: Cow<'static, [(EntityDataKindId, Option<Entity>)]>,
         table_archetype_components: Vec<ArchetypeComponentId>,
         sparse_set_archetype_components: Vec<ArchetypeComponentId>,
     ) -> Self {
@@ -222,28 +222,28 @@ impl Archetype {
     }
 
     #[inline]
-    pub fn table_components(&self) -> &[(EntityAtomKindId, Option<Entity>)] {
+    pub fn table_components(&self) -> &[(EntityDataKindId, Option<Entity>)] {
         &self.table_components
     }
 
     #[inline]
-    pub fn sparse_set_components(&self) -> &[(EntityAtomKindId, Option<Entity>)] {
+    pub fn sparse_set_components(&self) -> &[(EntityDataKindId, Option<Entity>)] {
         &self.sparse_set_components
     }
 
     #[inline]
-    pub fn unique_components(&self) -> &SparseSet<EntityAtomKindId, Column> {
+    pub fn unique_components(&self) -> &SparseSet<EntityDataKindId, Column> {
         &self.unique_components
     }
 
     #[inline]
-    pub fn unique_components_mut(&mut self) -> &mut SparseSet<EntityAtomKindId, Column> {
+    pub fn unique_components_mut(&mut self) -> &mut SparseSet<EntityDataKindId, Column> {
         &mut self.unique_components
     }
 
     // FIXME(Relationships) this also yields relations which feels weird but also needed
     #[inline]
-    pub fn components(&self) -> impl Iterator<Item = (EntityAtomKindId, Option<Entity>)> + '_ {
+    pub fn components(&self) -> impl Iterator<Item = (EntityDataKindId, Option<Entity>)> + '_ {
         self.components
             .indices()
             .map(|kind| (kind, None))
@@ -320,7 +320,7 @@ impl Archetype {
     }
 
     #[inline]
-    pub fn contains(&self, relation_kind: EntityAtomKindId, relation_target: Option<Entity>) -> bool {
+    pub fn contains(&self, relation_kind: EntityDataKindId, relation_target: Option<Entity>) -> bool {
         match relation_target {
             None => self.components.contains(relation_kind),
             Some(target) => self
@@ -336,7 +336,7 @@ impl Archetype {
     #[inline]
     pub fn get_storage_type(
         &self,
-        relation_kind: EntityAtomKindId,
+        relation_kind: EntityDataKindId,
         relation_target: Option<Entity>,
     ) -> Option<StorageType> {
         match relation_target {
@@ -353,7 +353,7 @@ impl Archetype {
     #[inline]
     pub fn get_archetype_component_id(
         &self,
-        relation_kind: EntityAtomKindId,
+        relation_kind: EntityDataKindId,
         relation_target: Option<Entity>,
     ) -> Option<ArchetypeComponentId> {
         match relation_target {
@@ -386,8 +386,8 @@ impl ArchetypeGeneration {
 
 #[derive(Hash, PartialEq, Eq)]
 pub struct ArchetypeIdentity {
-    table_components: Cow<'static, [(EntityAtomKindId, Option<Entity>)]>,
-    sparse_set_components: Cow<'static, [(EntityAtomKindId, Option<Entity>)]>,
+    table_components: Cow<'static, [(EntityDataKindId, Option<Entity>)]>,
+    sparse_set_components: Cow<'static, [(EntityDataKindId, Option<Entity>)]>,
 }
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
@@ -536,8 +536,8 @@ impl Archetypes {
     pub(crate) fn get_id_or_insert(
         &mut self,
         table_id: TableId,
-        table_components: Vec<(EntityAtomKindId, Option<Entity>)>,
-        sparse_set_components: Vec<(EntityAtomKindId, Option<Entity>)>,
+        table_components: Vec<(EntityDataKindId, Option<Entity>)>,
+        sparse_set_components: Vec<(EntityDataKindId, Option<Entity>)>,
     ) -> ArchetypeId {
         let table_components = Cow::from(table_components);
         let sparse_set_components = Cow::from(sparse_set_components);
