@@ -349,7 +349,7 @@ where
     }
 
     #[inline]
-    fn entity_atom_access(&self) -> &Access<EntityDataKindId> {
+    fn entity_data_access(&self) -> &Access<EntityDataKindId> {
         &self.system_meta.component_access_set.combined_access()
     }
 

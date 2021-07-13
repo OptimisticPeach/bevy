@@ -394,7 +394,7 @@ impl System for RunOnce {
 
     fn new_archetype(&mut self, _archetype: &Archetype) {}
 
-    fn entity_atom_access(&self) -> &Access<EntityDataKindId> {
+    fn entity_data_access(&self) -> &Access<EntityDataKindId> {
         &self.entity_atom_access
     }
 

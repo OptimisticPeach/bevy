@@ -79,7 +79,7 @@ impl<SystemA: System, SystemB: System<In = SystemA::Out>> System for ChainSystem
         &self.archetype_component_access
     }
 
-    fn entity_atom_access(&self) -> &Access<EntityDataKindId> {
+    fn entity_data_access(&self) -> &Access<EntityDataKindId> {
         &self.component_access
     }
 
@@ -101,9 +101,9 @@ impl<SystemA: System, SystemB: System<In = SystemA::Out>> System for ChainSystem
         self.system_a.initialize(world);
         self.system_b.initialize(world);
         self.component_access
-            .extend(self.system_a.entity_atom_access());
+            .extend(self.system_a.entity_data_access());
         self.component_access
-            .extend(self.system_b.entity_atom_access());
+            .extend(self.system_b.entity_data_access());
     }
 
     fn check_change_tick(&mut self, change_tick: u32) {

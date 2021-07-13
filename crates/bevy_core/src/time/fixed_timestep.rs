@@ -160,8 +160,8 @@ impl System for FixedTimestep {
         self.internal_system.archetype_atom_access()
     }
 
-    fn entity_atom_access(&self) -> &Access<EntityDataKindId> {
-        self.internal_system.entity_atom_access()
+    fn entity_data_access(&self) -> &Access<EntityDataKindId> {
+        self.internal_system.entity_data_access()
     }
 
     fn is_send(&self) -> bool {

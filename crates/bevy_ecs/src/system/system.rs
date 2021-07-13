@@ -43,7 +43,7 @@ pub trait System: Send + Sync + 'static {
     /// Register a new archetype for this system.
     fn new_archetype(&mut self, archetype: &Archetype);
     /// Returns the system's component [`Access`].
-    fn entity_atom_access(&self) -> &Access<EntityDataKindId>;
+    fn entity_data_access(&self) -> &Access<EntityDataKindId>;
     /// Returns the system's archetype component [`Access`].
     fn archetype_atom_access(&self) -> &Access<ArchetypeComponentId>;
     /// Returns true if the system is [`Send`].
