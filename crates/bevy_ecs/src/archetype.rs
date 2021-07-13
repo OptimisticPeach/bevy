@@ -130,7 +130,8 @@ pub struct Archetype {
     sparse_set_components: Cow<'static, [(EntityDataKindId, Option<Entity>)]>,
     pub(crate) unique_components: SparseSet<EntityDataKindId, Column>,
     pub(crate) components: SparseSet<EntityDataKindId, ArchetypeComponentInfo>,
-    pub(crate) relations: SparseSet<EntityDataKindId, StableHashMap<Entity, ArchetypeComponentInfo>>,
+    pub(crate) relations:
+        SparseSet<EntityDataKindId, StableHashMap<Entity, ArchetypeComponentInfo>>,
 }
 
 impl Archetype {
@@ -320,7 +321,11 @@ impl Archetype {
     }
 
     #[inline]
-    pub fn contains(&self, relation_kind: EntityDataKindId, relation_target: Option<Entity>) -> bool {
+    pub fn contains(
+        &self,
+        relation_kind: EntityDataKindId,
+        relation_target: Option<Entity>,
+    ) -> bool {
         match relation_target {
             None => self.components.contains(relation_kind),
             Some(target) => self

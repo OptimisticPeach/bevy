@@ -51,11 +51,7 @@ impl<'w> EntityRef<'w> {
 
     #[inline]
     pub fn contains_relation<T: 'static>(&self, target: Entity) -> bool {
-        let kind = match self
-            .world
-            .components
-            .get_relation_kind(TypeId::of::<T>())
-        {
+        let kind = match self.world.components.get_relation_kind(TypeId::of::<T>()) {
             Some(kind) => kind,
             None => return false,
         };
@@ -190,11 +186,7 @@ impl<'w> EntityMut<'w> {
 
     #[inline]
     pub fn contains_relation<T: 'static>(&self, target: Entity) -> bool {
-        let kind = match self
-            .world
-            .components
-            .get_relation_kind(TypeId::of::<T>())
-        {
+        let kind = match self.world.components.get_relation_kind(TypeId::of::<T>()) {
             Some(kind) => kind,
             None => return false,
         };
@@ -373,9 +365,7 @@ impl<'w> EntityMut<'w> {
                 .world
                 .components
                 .get_relation_kind_or_insert(ComponentDescriptor::new::<T>(StorageType::Table));
-            self.world
-                .bundles
-                .init_relation_info(kind, Some(target))
+            self.world.bundles.init_relation_info(kind, Some(target))
         };
 
         let (archetype, bundle_status, new_location) = unsafe {
@@ -563,14 +553,8 @@ impl<'w> EntityMut<'w> {
     }
 
     pub fn remove_relation<T: Component>(&mut self, target: Entity) -> Option<T> {
-        let kind = self
-            .world
-            .components
-            .get_relation_kind(TypeId::of::<T>())?;
-        let bundle_info = self
-            .world
-            .bundles
-            .init_relation_info(kind, Some(target));
+        let kind = self.world.components.get_relation_kind(TypeId::of::<T>())?;
+        let bundle_info = self.world.bundles.init_relation_info(kind, Some(target));
 
         let kind_id = kind.id();
         let archetypes = &mut self.world.archetypes;

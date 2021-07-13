@@ -667,7 +667,9 @@ fn process_systems(
 /// Returns vector containing all pairs of indices of systems with ambiguous execution order,
 /// along with specific components that have triggered the warning.
 /// Systems must be topologically sorted beforehand.
-fn find_ambiguities(systems: &[impl SystemContainer]) -> Vec<(usize, usize, Vec<EntityDataKindId>)> {
+fn find_ambiguities(
+    systems: &[impl SystemContainer],
+) -> Vec<(usize, usize, Vec<EntityDataKindId>)> {
     let mut ambiguity_set_labels = HashMap::default();
     for set in systems.iter().flat_map(|c| c.ambiguity_sets()) {
         let len = ambiguity_set_labels.len();

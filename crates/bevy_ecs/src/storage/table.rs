@@ -285,8 +285,7 @@ impl Table {
         let new_row = new_table.allocate(self.entities.swap_remove(row));
         for column in self.columns_mut() {
             let (data, ticks) = column.swap_remove_and_forget_unchecked(row);
-            if let Some(new_column) =
-                new_table.get_column_mut(column.relation.0, column.relation.1)
+            if let Some(new_column) = new_table.get_column_mut(column.relation.0, column.relation.1)
             {
                 new_column.initialize(new_row, data, ticks);
             }
@@ -316,8 +315,7 @@ impl Table {
         let is_last = row == self.entities.len() - 1;
         let new_row = new_table.allocate(self.entities.swap_remove(row));
         for column in self.columns_mut() {
-            if let Some(new_column) =
-                new_table.get_column_mut(column.relation.0, column.relation.1)
+            if let Some(new_column) = new_table.get_column_mut(column.relation.0, column.relation.1)
             {
                 let (data, ticks) = column.swap_remove_and_forget_unchecked(row);
                 new_column.initialize(new_row, data, ticks);
@@ -524,7 +522,10 @@ impl Tables {
         *self.table_ids.entry(hash).or_insert_with(move || {
             let mut table = Table::with_capacity(0, component_ids.len());
             for component_id in component_ids.iter() {
-                table.add_column(components.get_entity_data_kind(component_id.0), component_id.1);
+                table.add_column(
+                    components.get_entity_data_kind(component_id.0),
+                    component_id.1,
+                );
             }
             tables.push(table);
             TableId(tables.len() - 1)

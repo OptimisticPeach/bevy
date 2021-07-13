@@ -17,8 +17,8 @@ use crate::{
     bundle::{Bundle, Bundles},
     change_detection::Ticks,
     component::{
-        Component, ComponentDescriptor, ComponentTicks, Components, EntityDataKindId, RegistrationError,
-        StorageType,
+        Component, ComponentDescriptor, ComponentTicks, Components, EntityDataKindId,
+        RegistrationError, StorageType,
     },
     entity::{Entities, Entity},
     query::{FilterFetch, QueryState, WorldQuery},
@@ -860,7 +860,10 @@ impl World {
     /// # Safety
     /// `component_id` must be valid and correspond to a resource component of type T
     #[inline]
-    unsafe fn initialize_resource_internal(&mut self, component_id: EntityDataKindId) -> &mut Column {
+    unsafe fn initialize_resource_internal(
+        &mut self,
+        component_id: EntityDataKindId,
+    ) -> &mut Column {
         // SAFE: resource archetype always exists
         let resource_archetype = self
             .archetypes

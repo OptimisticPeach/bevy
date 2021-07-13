@@ -214,8 +214,7 @@ impl Components {
                 name: layout.name,
             });
         }
-        self.relation_indices
-            .insert(layout.type_id().unwrap(), id);
+        self.relation_indices.insert(layout.type_id().unwrap(), id);
         self.kinds.push(EntityDataKindInfo { data: layout, id });
         Ok(self.kinds.last().unwrap())
     }
