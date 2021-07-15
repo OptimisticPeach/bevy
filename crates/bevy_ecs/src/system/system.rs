@@ -43,9 +43,9 @@ pub trait System: Send + Sync + 'static {
     /// Register a new archetype for this system.
     fn new_archetype(&mut self, archetype: &Archetype);
     /// Returns the system's component [`Access`].
-    fn entity_data_access(&self) -> &Access<DataKindId>;
+    fn component_access(&self) -> &Access<DataKindId>;
     /// Returns the system's archetype component [`Access`].
-    fn archetype_data_access(&self) -> &Access<ArchetypeComponentId>;
+    fn archetype_component_access(&self) -> &Access<ArchetypeComponentId>;
     /// Returns true if the system is [`Send`].
     fn is_send(&self) -> bool;
     /// Runs the system with the given input in the world. Unlike [`System::run`], this function

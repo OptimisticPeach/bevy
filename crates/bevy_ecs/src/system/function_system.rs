@@ -349,12 +349,12 @@ where
     }
 
     #[inline]
-    fn entity_data_access(&self) -> &Access<DataKindId> {
+    fn component_access(&self) -> &Access<DataKindId> {
         &self.system_meta.entity_data_access_set.combined_access()
     }
 
     #[inline]
-    fn archetype_data_access(&self) -> &Access<ArchetypeComponentId> {
+    fn archetype_component_access(&self) -> &Access<ArchetypeComponentId> {
         &self.system_meta.archetype_entity_data_access
     }
 

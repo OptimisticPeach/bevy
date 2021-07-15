@@ -156,12 +156,12 @@ impl System for FixedTimestep {
         self.internal_system.new_archetype(archetype);
     }
 
-    fn archetype_data_access(&self) -> &Access<ArchetypeComponentId> {
-        self.internal_system.archetype_data_access()
+    fn archetype_component_access(&self) -> &Access<ArchetypeComponentId> {
+        self.internal_system.archetype_component_access()
     }
 
-    fn entity_data_access(&self) -> &Access<DataKindId> {
-        self.internal_system.entity_data_access()
+    fn component_access(&self) -> &Access<DataKindId> {
+        self.internal_system.component_access()
     }
 
     fn is_send(&self) -> bool {

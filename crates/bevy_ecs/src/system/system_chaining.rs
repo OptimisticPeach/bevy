@@ -70,16 +70,16 @@ impl<SystemA: System, SystemB: System<In = SystemA::Out>> System for ChainSystem
         self.system_b.new_archetype(archetype);
 
         self.archetype_component_access
-            .extend(self.system_a.archetype_data_access());
+            .extend(self.system_a.archetype_component_access());
         self.archetype_component_access
-            .extend(self.system_b.archetype_data_access());
+            .extend(self.system_b.archetype_component_access());
     }
 
-    fn archetype_data_access(&self) -> &Access<ArchetypeComponentId> {
+    fn archetype_component_access(&self) -> &Access<ArchetypeComponentId> {
         &self.archetype_component_access
     }
 
-    fn entity_data_access(&self) -> &Access<DataKindId> {
+    fn component_access(&self) -> &Access<DataKindId> {
         &self.component_access
     }
 
@@ -101,9 +101,9 @@ impl<SystemA: System, SystemB: System<In = SystemA::Out>> System for ChainSystem
         self.system_a.initialize(world);
         self.system_b.initialize(world);
         self.component_access
-            .extend(self.system_a.entity_data_access());
+            .extend(self.system_a.component_access());
         self.component_access
-            .extend(self.system_b.entity_data_access());
+            .extend(self.system_b.component_access());
     }
 
     fn check_change_tick(&mut self, change_tick: u32) {

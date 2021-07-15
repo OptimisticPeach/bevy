@@ -212,6 +212,6 @@ impl SystemContainer for ParallelSystemContainer {
     }
 
     fn entity_data_access(&self) -> Option<&Access<DataKindId>> {
-        Some(self.system().entity_data_access())
+        Some(self.system().component_access())
     }
 }

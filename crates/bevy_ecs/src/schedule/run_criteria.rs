@@ -394,11 +394,11 @@ impl System for RunOnce {
 
     fn new_archetype(&mut self, _archetype: &Archetype) {}
 
-    fn entity_data_access(&self) -> &Access<DataKindId> {
+    fn component_access(&self) -> &Access<DataKindId> {
         &self.entity_data_access
     }
 
-    fn archetype_data_access(&self) -> &Access<ArchetypeComponentId> {
+    fn archetype_component_access(&self) -> &Access<ArchetypeComponentId> {
         &self.archetype_data_access
     }
 
