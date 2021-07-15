@@ -150,9 +150,9 @@ impl From<TypeInfo> for ComponentDescriptor {
 }
 
 #[derive(Debug, Copy, Clone, Hash, Eq, PartialEq, PartialOrd, Ord)]
-pub struct DataKindId(usize);
+pub struct ComponentKindId(usize);
 
-impl SparseSetIndex for DataKindId {
+impl SparseSetIndex for ComponentKindId {
     #[inline]
     fn sparse_set_index(&self) -> usize {
         self.0
@@ -164,29 +164,29 @@ impl SparseSetIndex for DataKindId {
 }
 
 #[derive(Debug)]
-pub struct DataKindInfo {
+pub struct ComponentKindInfo {
     data: ComponentDescriptor,
-    id: DataKindId,
+    id: ComponentKindId,
 }
 
-impl DataKindInfo {
+impl ComponentKindInfo {
     pub fn data_layout(&self) -> &ComponentDescriptor {
         &self.data
     }
 
-    pub fn id(&self) -> DataKindId {
+    pub fn id(&self) -> ComponentKindId {
         self.id
     }
 }
 
 #[derive(Debug, Default)]
 pub struct Components {
-    kinds: Vec<DataKindInfo>,
+    kinds: Vec<ComponentKindInfo>,
     // These are only used by bevy. Scripting/dynamic components should
     // use their own hashmap to lookup CustomId -> RelationKindId
-    component_indices: HashMap<TypeId, DataKindId, fxhash::FxBuildHasher>,
-    resource_indices: HashMap<TypeId, DataKindId, fxhash::FxBuildHasher>,
-    relation_indices: HashMap<TypeId, DataKindId, fxhash::FxBuildHasher>,
+    component_indices: HashMap<TypeId, ComponentKindId, fxhash::FxBuildHasher>,
+    resource_indices: HashMap<TypeId, ComponentKindId, fxhash::FxBuildHasher>,
+    relation_indices: HashMap<TypeId, ComponentKindId, fxhash::FxBuildHasher>,
 }
 
 #[derive(Debug, Error)]
@@ -203,8 +203,8 @@ impl Components {
     pub fn new_relation_kind(
         &mut self,
         layout: ComponentDescriptor,
-    ) -> Result<&DataKindInfo, RegistrationError> {
-        let id = DataKindId(self.kinds.len());
+    ) -> Result<&ComponentKindInfo, RegistrationError> {
+        let id = ComponentKindId(self.kinds.len());
         if self
             .relation_indices
             .contains_key(&layout.type_id().unwrap())
@@ -215,15 +215,15 @@ impl Components {
             });
         }
         self.relation_indices.insert(layout.type_id().unwrap(), id);
-        self.kinds.push(DataKindInfo { data: layout, id });
+        self.kinds.push(ComponentKindInfo { data: layout, id });
         Ok(self.kinds.last().unwrap())
     }
 
     pub fn new_component_kind(
         &mut self,
         layout: ComponentDescriptor,
-    ) -> Result<&DataKindInfo, RegistrationError> {
-        let id = DataKindId(self.kinds.len());
+    ) -> Result<&ComponentKindInfo, RegistrationError> {
+        let id = ComponentKindId(self.kinds.len());
         if self
             .component_indices
             .contains_key(&layout.type_id().unwrap())
@@ -234,15 +234,15 @@ impl Components {
             });
         }
         self.component_indices.insert(layout.type_id().unwrap(), id);
-        self.kinds.push(DataKindInfo { data: layout, id });
+        self.kinds.push(ComponentKindInfo { data: layout, id });
         Ok(self.kinds.last().unwrap())
     }
 
     pub fn new_resource_kind(
         &mut self,
         layout: ComponentDescriptor,
-    ) -> Result<&DataKindInfo, RegistrationError> {
-        let id = DataKindId(self.kinds.len());
+    ) -> Result<&ComponentKindInfo, RegistrationError> {
+        let id = ComponentKindId(self.kinds.len());
         if self
             .resource_indices
             .contains_key(&layout.type_id().unwrap())
@@ -253,25 +253,25 @@ impl Components {
             });
         }
         self.resource_indices.insert(layout.type_id().unwrap(), id);
-        self.kinds.push(DataKindInfo { data: layout, id });
+        self.kinds.push(ComponentKindInfo { data: layout, id });
         Ok(self.kinds.last().unwrap())
     }
 
-    pub fn get_entity_data_kind(&self, id: DataKindId) -> &DataKindInfo {
+    pub fn get_entity_data_kind(&self, id: ComponentKindId) -> &ComponentKindInfo {
         self.kinds.get(id.0).unwrap()
     }
 
-    pub fn get_component_kind(&self, type_id: TypeId) -> Option<&DataKindInfo> {
+    pub fn get_component_kind(&self, type_id: TypeId) -> Option<&ComponentKindInfo> {
         let id = self.component_indices.get(&type_id).copied()?;
         Some(&self.kinds[id.0])
     }
 
-    pub fn get_resource_kind(&self, type_id: TypeId) -> Option<&DataKindInfo> {
+    pub fn get_resource_kind(&self, type_id: TypeId) -> Option<&ComponentKindInfo> {
         let id = self.resource_indices.get(&type_id).copied()?;
         Some(&self.kinds[id.0])
     }
 
-    pub fn get_relation_kind(&self, type_id: TypeId) -> Option<&DataKindInfo> {
+    pub fn get_relation_kind(&self, type_id: TypeId) -> Option<&ComponentKindInfo> {
         let id = self.relation_indices.get(&type_id).copied()?;
         Some(&self.kinds[id.0])
     }
@@ -279,7 +279,7 @@ impl Components {
     pub fn get_relation_kind_or_insert(
         &mut self,
         layout: ComponentDescriptor,
-    ) -> &DataKindInfo {
+    ) -> &ComponentKindInfo {
         match self
             .relation_indices
             .get(&layout.type_id().unwrap())
@@ -293,7 +293,7 @@ impl Components {
     pub fn get_component_kind_or_insert(
         &mut self,
         layout: ComponentDescriptor,
-    ) -> &DataKindInfo {
+    ) -> &ComponentKindInfo {
         match self
             .component_indices
             .get(&layout.type_id().unwrap())
@@ -307,7 +307,7 @@ impl Components {
     pub fn get_resource_kind_or_insert(
         &mut self,
         layout: ComponentDescriptor,
-    ) -> &DataKindInfo {
+    ) -> &ComponentKindInfo {
         match self
             .resource_indices
             .get(&layout.type_id().unwrap())

@@ -4,7 +4,7 @@ use crate::{
     bundle::Bundles,
     change_detection::Ticks,
     component::{
-        Component, ComponentDescriptor, ComponentTicks, Components, DataKindId, StorageType,
+        Component, ComponentDescriptor, ComponentTicks, Components, ComponentKindId, StorageType,
     },
     entity::{Entities, Entity},
     query::{
@@ -179,8 +179,8 @@ fn assert_entity_data_access_compatibility(
     system_name: &str,
     query_type: &'static str,
     filter_type: &'static str,
-    system_access: &FilteredAccessSet<DataKindId>,
-    current: &FilteredAccess<DataKindId>,
+    system_access: &FilteredAccessSet<ComponentKindId>,
+    current: &FilteredAccess<ComponentKindId>,
     world: &World,
 ) {
     let mut conflicts = system_access.get_conflicts(current);
@@ -265,7 +265,7 @@ impl<'w, T: Component> AsRef<T> for Res<'w, T> {
 
 /// The [`SystemParamState`] of [`Res`].
 pub struct ResState<T> {
-    component_id: DataKindId,
+    component_id: ComponentKindId,
     marker: PhantomData<T>,
 }
 
@@ -375,7 +375,7 @@ impl<'a, T: Component> SystemParamFetch<'a> for OptionResState<T> {
 
 /// The [`SystemParamState`] of [`ResMut`].
 pub struct ResMutState<T> {
-    component_id: DataKindId,
+    component_id: ComponentKindId,
     marker: PhantomData<T>,
 }
 
@@ -634,7 +634,7 @@ impl<'a, T: Component + FromWorld> SystemParamFetch<'a> for LocalState<T> {
 /// ```
 pub struct RemovedComponents<'a, T> {
     world: &'a World,
-    component_id: DataKindId,
+    component_id: ComponentKindId,
     marker: PhantomData<T>,
 }
 
@@ -650,7 +650,7 @@ unsafe impl<T: Component> ReadOnlySystemParamFetch for RemovedComponentsState<T>
 
 /// The [`SystemParamState`] of [`RemovedComponents`].
 pub struct RemovedComponentsState<T> {
-    component_id: DataKindId,
+    component_id: ComponentKindId,
     marker: PhantomData<T>,
 }
 
@@ -750,7 +750,7 @@ impl<'w, T: 'static> Deref for NonSend<'w, T> {
 
 /// The [`SystemParamState`] of [`NonSend`].
 pub struct NonSendState<T> {
-    component_id: DataKindId,
+    component_id: ComponentKindId,
     marker: PhantomData<fn() -> T>,
 }
 
@@ -865,7 +865,7 @@ impl<'a, T: 'static> SystemParamFetch<'a> for OptionNonSendState<T> {
 
 /// The [`SystemParamState`] of [`NonSendMut`].
 pub struct NonSendMutState<T> {
-    component_id: DataKindId,
+    component_id: ComponentKindId,
     marker: PhantomData<fn() -> T>,
 }
 
