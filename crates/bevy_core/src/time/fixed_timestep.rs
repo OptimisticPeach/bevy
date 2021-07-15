@@ -1,7 +1,7 @@
 use crate::Time;
 use bevy_ecs::{
     archetype::{Archetype, ArchetypeComponentId},
-    component::EntityDataKindId,
+    component::DataKindId,
     query::Access,
     schedule::ShouldRun,
     system::{IntoSystem, Local, Res, ResMut, System, SystemId},
@@ -160,7 +160,7 @@ impl System for FixedTimestep {
         self.internal_system.archetype_data_access()
     }
 
-    fn entity_data_access(&self) -> &Access<EntityDataKindId> {
+    fn entity_data_access(&self) -> &Access<DataKindId> {
         self.internal_system.entity_data_access()
     }
 

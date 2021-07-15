@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::{
     archetype::{Archetype, ArchetypeComponentId, ArchetypeGeneration, ArchetypeId},
-    component::{Component, EntityDataKindId},
+    component::{Component, DataKindId},
     entity::Entity,
     query::{
         Access, Fetch, FetchState, FilterFetch, FilteredAccess, QueryCombinationIter, QueryIter,
@@ -68,7 +68,7 @@ where
 {
     world_id: WorldId,
     pub(crate) archetype_entity_data_access: Access<ArchetypeComponentId>,
-    pub(crate) entity_data_access: FilteredAccess<EntityDataKindId>,
+    pub(crate) entity_data_access: FilteredAccess<DataKindId>,
 
     pub(crate) current_relation_filter: QueryRelationFilter<Q, F>,
     pub(crate) relation_filter_accesses: HashMap<QueryRelationFilter<Q, F>, QueryAccessCache>,

@@ -1,5 +1,5 @@
 use crate::{
-    component::EntityDataKindId,
+    component::DataKindId,
     query::Access,
     schedule::{
         BoxedAmbiguitySetLabel, BoxedRunCriteriaLabel, BoxedSystemLabel, ExclusiveSystemDescriptor,
@@ -21,7 +21,7 @@ pub trait SystemContainer: GraphNode<Label = BoxedSystemLabel> {
     fn set_run_criteria(&mut self, index: usize);
     fn run_criteria_label(&self) -> Option<&BoxedRunCriteriaLabel>;
     fn ambiguity_sets(&self) -> &[BoxedAmbiguitySetLabel];
-    fn entity_data_access(&self) -> Option<&Access<EntityDataKindId>>;
+    fn entity_data_access(&self) -> Option<&Access<DataKindId>>;
 }
 
 pub(super) struct ExclusiveSystemContainer {
@@ -100,7 +100,7 @@ impl SystemContainer for ExclusiveSystemContainer {
         &self.ambiguity_sets
     }
 
-    fn entity_data_access(&self) -> Option<&Access<EntityDataKindId>> {
+    fn entity_data_access(&self) -> Option<&Access<DataKindId>> {
         None
     }
 }
@@ -211,7 +211,7 @@ impl SystemContainer for ParallelSystemContainer {
         &self.ambiguity_sets
     }
 
-    fn entity_data_access(&self) -> Option<&Access<EntityDataKindId>> {
+    fn entity_data_access(&self) -> Option<&Access<DataKindId>> {
         Some(self.system().entity_data_access())
     }
 }
