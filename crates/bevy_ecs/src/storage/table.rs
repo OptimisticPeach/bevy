@@ -1,5 +1,5 @@
 use crate::{
-    component::{ComponentTicks, Components, ComponentKindId, ComponentKindInfo},
+    component::{ComponentId, ComponentInfo, ComponentTicks, Components},
     entity::Entity,
     storage::{BlobVec, SparseSet},
 };
@@ -33,7 +33,7 @@ impl TableId {
 
 #[derive(Debug)]
 pub struct Column {
-    pub(crate) relation: (ComponentKindId, Option<Entity>),
+    pub(crate) relation: (ComponentId, Option<Entity>),
     pub(crate) data: BlobVec,
     pub(crate) ticks: Vec<UnsafeCell<ComponentTicks>>,
 }
@@ -41,17 +41,13 @@ pub struct Column {
 impl Column {
     #[inline]
     pub fn with_capacity(
-        relation_kind: &ComponentKindInfo,
+        component_info: &ComponentInfo,
         target: Option<Entity>,
         capacity: usize,
     ) -> Self {
         Column {
-            relation: (relation_kind.id(), target),
-            data: BlobVec::new(
-                relation_kind.data_layout().layout(),
-                relation_kind.data_layout().drop(),
-                capacity,
-            ),
+            relation: (component_info.id(), target),
+            data: BlobVec::new(component_info.layout(), component_info.drop(), capacity),
             ticks: Vec::with_capacity(capacity),
         }
     }
@@ -197,8 +193,8 @@ impl Column {
 }
 
 pub struct Table {
-    pub(crate) component_columns: SparseSet<ComponentKindId, Column>,
-    pub(crate) relation_columns: SparseSet<ComponentKindId, StableHashMap<Entity, Column>>,
+    pub(crate) component_columns: SparseSet<ComponentId, Column>,
+    pub(crate) relation_columns: SparseSet<ComponentId, StableHashMap<Entity, Column>>,
     entities: Vec<Entity>,
 }
 
@@ -232,7 +228,7 @@ impl Table {
         )
     }
 
-    pub fn add_column(&mut self, relation_info: &ComponentKindInfo, target: Option<Entity>) {
+    pub fn add_column(&mut self, relation_info: &ComponentInfo, target: Option<Entity>) {
         let capacity = self.capacity();
         match target {
             None => self.component_columns.insert(
@@ -365,11 +361,7 @@ impl Table {
     }
 
     #[inline]
-    pub fn get_column(
-        &self,
-        component_id: ComponentKindId,
-        target: Option<Entity>,
-    ) -> Option<&Column> {
+    pub fn get_column(&self, component_id: ComponentId, target: Option<Entity>) -> Option<&Column> {
         match target {
             Some(target) => self
                 .relation_columns
@@ -382,7 +374,7 @@ impl Table {
     #[inline]
     pub fn get_column_mut(
         &mut self,
-        component_id: ComponentKindId,
+        component_id: ComponentId,
         target: Option<Entity>,
     ) -> Option<&mut Column> {
         match target {
@@ -395,7 +387,7 @@ impl Table {
     }
 
     #[inline]
-    pub fn has_column(&self, component_id: ComponentKindId, target: Option<Entity>) -> bool {
+    pub fn has_column(&self, component_id: ComponentId, target: Option<Entity>) -> bool {
         match target {
             Some(target) => self
                 .relation_columns
@@ -512,7 +504,7 @@ impl Tables {
     /// `component_ids` must contain components that exist in `components`
     pub unsafe fn get_id_or_insert(
         &mut self,
-        component_ids: &[(ComponentKindId, Option<Entity>)],
+        component_ids: &[(ComponentId, Option<Entity>)],
         components: &Components,
     ) -> TableId {
         let mut hasher = AHasher::default();
@@ -522,10 +514,7 @@ impl Tables {
         *self.table_ids.entry(hash).or_insert_with(move || {
             let mut table = Table::with_capacity(0, component_ids.len());
             for component_id in component_ids.iter() {
-                table.add_column(
-                    components.get_entity_data_kind(component_id.0),
-                    component_id.1,
-                );
+                table.add_column(components.info(component_id.0).unwrap(), component_id.1);
             }
             tables.push(table);
             TableId(tables.len() - 1)
@@ -570,8 +559,9 @@ mod tests {
     #[test]
     fn table() {
         let mut components = Components::default();
-        let component_id = components
-            .get_component_kind_or_insert(ComponentDescriptor::new::<usize>(StorageType::Table));
+        let component_id = components.component_info_or_insert(
+            ComponentDescriptor::from_storage::<usize>(StorageType::Table),
+        );
         let mut table = Table::with_capacity(0, 1);
         table.add_column(component_id, None);
         let entities = (0..200).map(Entity::new).collect::<Vec<_>>();

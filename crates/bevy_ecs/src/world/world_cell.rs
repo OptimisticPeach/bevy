@@ -186,7 +186,7 @@ impl<'w> WorldCell<'w> {
         let component_id = self
             .world
             .components
-            .get_resource_kind(TypeId::of::<T>())?
+            .resource_info(TypeId::of::<T>())?
             .id();
         let resource_archetype = self.world.archetypes.resource();
         let archetype_component_id =
@@ -203,7 +203,7 @@ impl<'w> WorldCell<'w> {
         let component_id = self
             .world
             .components
-            .get_resource_kind(TypeId::of::<T>())?
+            .resource_info(TypeId::of::<T>())?
             .id();
         let resource_archetype = self.world.archetypes.resource();
         let archetype_component_id =
@@ -223,7 +223,7 @@ impl<'w> WorldCell<'w> {
         let component_id = self
             .world
             .components
-            .get_resource_kind(TypeId::of::<T>())?
+            .resource_info(TypeId::of::<T>())?
             .id();
         let resource_archetype = self.world.archetypes.resource();
         let archetype_component_id =
@@ -240,7 +240,7 @@ impl<'w> WorldCell<'w> {
         let component_id = self
             .world
             .components
-            .get_resource_kind(TypeId::of::<T>())?
+            .resource_info(TypeId::of::<T>())?
             .id();
         let resource_archetype = self.world.archetypes.resource();
         let archetype_component_id =
@@ -314,7 +314,7 @@ mod tests {
 
         let u32_component_id = world
             .components
-            .get_resource_kind(TypeId::of::<u32>())
+            .resource_info(TypeId::of::<u32>())
             .unwrap()
             .id();
         let resource_archetype = world.archetypes.get(ArchetypeId::resource()).unwrap();

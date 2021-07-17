@@ -96,7 +96,7 @@ where
         unsafe {
             let table_row = self.table.allocate(entity);
             let location = self.archetype.allocate(entity, table_row);
-            self.bundle_info.write_components(
+            self.bundle_info.write_bundle(
                 self.sparse_sets,
                 entity,
                 self.table,

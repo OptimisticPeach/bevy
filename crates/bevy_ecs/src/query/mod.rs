@@ -142,7 +142,7 @@ mod tests {
     fn query_iter_combinations_sparse() {
         let mut world = World::new();
         world
-            .register_component(ComponentDescriptor::new::<A>(StorageType::SparseSet))
+            .register_component(ComponentDescriptor::from_storage::<A>(StorageType::SparseSet))
             .unwrap();
 
         world.spawn_batch((1..=4).map(|i| (A(i),)));
@@ -172,7 +172,7 @@ mod tests {
     fn multi_storage_query() {
         let mut world = World::new();
         world
-            .register_component(ComponentDescriptor::new::<A>(StorageType::SparseSet))
+            .register_component(ComponentDescriptor::from_storage::<A>(StorageType::SparseSet))
             .unwrap();
 
         world.spawn().insert_bundle((A(1), B(2)));

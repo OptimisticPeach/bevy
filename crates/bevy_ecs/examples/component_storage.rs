@@ -10,7 +10,7 @@ fn main() {
 
     // Store components of type `i32` in a Sparse set
     world
-        .register_component(ComponentDescriptor::new::<i32>(StorageType::SparseSet))
+        .register_component(ComponentDescriptor::from_storage::<i32>(StorageType::SparseSet))
         .expect("The component of type i32 is already in use");
 
     // Components of type i32 will have the above configured Sparse set storage,

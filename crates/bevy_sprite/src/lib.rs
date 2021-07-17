@@ -98,7 +98,7 @@ impl Plugin for SpritePlugin {
         }
         let world = app.world_mut();
         world
-            .register_component(ComponentDescriptor::new::<OutsideFrustum>(
+            .register_component(ComponentDescriptor::from_storage::<OutsideFrustum>(
                 StorageType::SparseSet,
             ))
             .unwrap();

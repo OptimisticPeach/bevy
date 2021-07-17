@@ -3,8 +3,7 @@ pub use bevy_ecs_macros::Bundle;
 use crate::{
     archetype::ComponentStatus,
     component::{
-        Component, ComponentTicks, Components, ComponentKindId, ComponentKindInfo, StorageType,
-        TypeInfo,
+        Component, ComponentId, ComponentInfo, ComponentTicks, Components, StorageType, TypeInfo,
     },
     entity::Entity,
     storage::{SparseSetIndex, SparseSets, Table},
@@ -120,7 +119,7 @@ impl SparseSetIndex for BundleId {
 
 pub struct BundleInfo {
     pub(crate) id: BundleId,
-    pub(crate) relation_ids: Vec<(ComponentKindId, Option<Entity>)>,
+    pub(crate) component_ids: Vec<(ComponentId, Option<Entity>)>,
     pub(crate) storage_types: Vec<StorageType>,
 }
 
@@ -129,7 +128,7 @@ impl BundleInfo {
     /// table row must exist, entity must be valid
     #[allow(clippy::too_many_arguments)]
     #[inline]
-    pub(crate) unsafe fn write_components<T: Bundle>(
+    pub(crate) unsafe fn write_bundle<T: Bundle>(
         &self,
         sparse_sets: &mut SparseSets,
         entity: Entity,
@@ -143,7 +142,7 @@ impl BundleInfo {
         // bundle_info.component_ids are also in "bundle order"
         let mut bundle_component = 0;
         bundle.get_components(&mut |component_ptr| {
-            self.write_relation(
+            self.write_component(
                 sparse_sets,
                 entity,
                 table,
@@ -158,22 +157,22 @@ impl BundleInfo {
     }
 
     #[allow(clippy::too_many_arguments)]
-    pub(crate) unsafe fn write_relation(
+    pub(crate) unsafe fn write_component(
         &self,
         sparse_sets: &mut SparseSets,
         entity: Entity,
         table: &mut Table,
         table_row: usize,
         bundle_status: &[ComponentStatus],
-        relation_index: usize,
+        component_index: usize,
         component_ptr: *mut u8,
         change_tick: u32,
     ) {
-        let (kind_id, target) = self.relation_ids[relation_index];
-        match self.storage_types[relation_index] {
+        let (component_id, target) = self.component_ids[component_index];
+        match self.storage_types[component_index] {
             StorageType::Table => {
-                let column = table.get_column_mut(kind_id, target).unwrap();
-                match bundle_status[relation_index] {
+                let column = table.get_column_mut(component_id, target).unwrap();
+                match bundle_status[component_index] {
                     ComponentStatus::Added => {
                         column.initialize(
                             table_row,
@@ -187,7 +186,7 @@ impl BundleInfo {
                 }
             }
             StorageType::SparseSet => {
-                let sparse_set = sparse_sets.get_mut(kind_id, target).unwrap();
+                let sparse_set = sparse_sets.get_mut(component_id, target).unwrap();
                 sparse_set.insert(entity, component_ptr, change_tick);
             }
         }
@@ -199,8 +198,8 @@ impl BundleInfo {
     }
 
     #[inline]
-    pub fn components(&self) -> &[(ComponentKindId, Option<Entity>)] {
-        &self.relation_ids
+    pub fn components(&self) -> &[(ComponentId, Option<Entity>)] {
+        &self.component_ids
     }
 
     #[inline]
@@ -213,7 +212,7 @@ impl BundleInfo {
 pub struct Bundles {
     bundle_infos: Vec<BundleInfo>,
     bundle_ids: HashMap<TypeId, BundleId>,
-    relation_bundle_ids: HashMap<(ComponentKindId, Option<Entity>), BundleId>,
+    relation_bundle_ids: HashMap<(ComponentId, Option<Entity>), BundleId>,
 }
 
 impl Bundles {
@@ -229,29 +228,29 @@ impl Bundles {
 
     pub fn get_relation_bundle_id(
         &self,
-        relation_kind: ComponentKindId,
-        relation_target: Option<Entity>,
+        component_id: ComponentId,
+        target: Option<Entity>,
     ) -> Option<BundleId> {
         self.relation_bundle_ids
-            .get(&(relation_kind, relation_target))
+            .get(&(component_id, target))
             .copied()
     }
 
     pub(crate) fn init_relation_info<'a>(
         &'a mut self,
-        relation_kind: &ComponentKindInfo,
-        relation_target: Option<Entity>,
+        component_id: &ComponentInfo,
+        target: Option<Entity>,
     ) -> &'a BundleInfo {
         let bundle_infos = &mut self.bundle_infos;
         let id = self
             .relation_bundle_ids
-            .entry((relation_kind.id(), relation_target))
+            .entry((component_id.id(), target))
             .or_insert_with(|| {
                 let id = BundleId(bundle_infos.len());
                 let bundle_info = BundleInfo {
                     id,
-                    relation_ids: vec![(relation_kind.id(), relation_target)],
-                    storage_types: vec![relation_kind.data_layout().storage_type()],
+                    component_ids: vec![(component_id.id(), target)],
+                    storage_types: vec![component_id.storage_type()],
                 };
                 bundle_infos.push(bundle_info);
                 id
@@ -286,9 +285,9 @@ fn initialize_bundle(
     let mut storage_types = Vec::new();
 
     for type_info in type_info {
-        let kind_info = components.get_component_kind_or_insert(type_info.clone().into());
+        let kind_info = components.component_info_or_insert(type_info.clone().into());
         component_ids.push((kind_info.id(), None));
-        storage_types.push(kind_info.data_layout().storage_type());
+        storage_types.push(kind_info.storage_type());
     }
 
     let mut deduped = component_ids.clone();
@@ -300,7 +299,7 @@ fn initialize_bundle(
 
     BundleInfo {
         id,
-        relation_ids: component_ids,
+        component_ids,
         storage_types,
     }
 }

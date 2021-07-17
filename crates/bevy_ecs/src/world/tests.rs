@@ -3,7 +3,7 @@
 use std::convert::TryInto;
 
 use crate::{
-    component::{ComponentDescriptor, StorageType},
+    component::{ComponentDescriptor, StorageType, TargetType},
     query::RelationFilter,
 };
 use crate::{prelude::*, query::RelationAccess};
@@ -18,7 +18,10 @@ fn relation_spawn_raw(storage_type: StorageType) {
     let mut world = World::new();
 
     world
-        .register_relation(ComponentDescriptor::new::<ChildOf>(storage_type))
+        .register_component(ComponentDescriptor::new_targetted::<ChildOf>(
+            storage_type,
+            TargetType::Entity,
+        ))
         .unwrap();
 
     struct ChildOf;
@@ -50,7 +53,10 @@ fn relation_query_raw(storage_type: StorageType) {
     let mut world = World::new();
 
     world
-        .register_relation(ComponentDescriptor::new::<ChildOf>(storage_type))
+        .register_component(ComponentDescriptor::new_targetted::<ChildOf>(
+            storage_type,
+            TargetType::Entity,
+        ))
         .unwrap();
 
     let parent1 = world.spawn().id();
@@ -103,7 +109,10 @@ fn relation_access_raw(storage_type: StorageType) {
     let mut world = World::new();
 
     world
-        .register_relation(ComponentDescriptor::new::<ChildOf>(storage_type))
+        .register_component(ComponentDescriptor::new_targetted::<ChildOf>(
+            storage_type,
+            TargetType::Entity,
+        ))
         .unwrap();
 
     let random_parent = world.spawn().id();
@@ -241,7 +250,10 @@ fn relation_query_mut_raw(storage_type: StorageType) {
 
     let mut world = World::new();
     world
-        .register_relation(ComponentDescriptor::new::<MyRelation>(storage_type))
+        .register_component(ComponentDescriptor::new_targetted::<MyRelation>(
+            storage_type,
+            TargetType::Entity,
+        ))
         .unwrap();
 
     let target1 = world.spawn().insert(Fragment::<1>).id();
@@ -402,7 +414,13 @@ macro_rules! self_query_conflict_tests {
 self_query_conflict_tests!(
     mut_and_mut => <(&mut Relation<u32>, &mut Relation<u32>)>
     mut_and_ref => <(&mut Relation<u32>, &Relation<u32>)>
-    ref_and_mut => <(&mut Relation<u32>, &Relation<u32>)>
+    ref_and_mut => <(&Relation<u32>, &mut Relation<u32>)>
+    rel_and_mut => <(&Relation<u32>, &mut u32)>
+    rel_mut_and_ref => <(&mut Relation<u32>, &u32)>
+    mut_and_rel => <(&mut u32, &Relation<u32>)>
+    ref_and_rel_mut => <(&u32, &mut Relation<u32>)>
+    mut_and_rel_mut => <(&mut u32, &mut Relation<u32>)>
+    rel_mut_and_mut => <(&mut Relation<u32>, &mut u32)>
 );
 
 macro_rules! no_self_query_conflict_tests {
@@ -418,12 +436,6 @@ macro_rules! no_self_query_conflict_tests {
 }
 
 no_self_query_conflict_tests!(
-    rel_and_mut => <(&Relation<u32>, &mut u32)>
-    mut_and_rel => <(&mut u32, &Relation<u32>)>
-    rel_mut_and_ref => <(&mut Relation<u32>, &u32)>
-    ref_and_rel_mut => <(&u32, &mut Relation<u32>)>
-    mut_and_rel_mut => <(&mut u32, &mut Relation<u32>)>
-    rel_mut_and_mut => <(&mut Relation<u32>, &mut u32)>
     rel_and_rel => <(&Relation<u32>, &Relation<u32>)>
     rel_and_diff_rel => <(&Relation<u32>, &Relation<u64>)>
     rel_mut_and_diff_rel_mut => <(&mut Relation<u32>, &mut Relation<u64>)>
@@ -498,7 +510,7 @@ fn conflict_without_relation() {
     let q1 = world.query::<(&mut u32, &Relation<u64>)>();
     let q2 = world.query_filtered::<&mut u32, Without<Relation<u64>>>();
     assert_eq!(
-        q1.entity_data_access.is_compatible(&q2.entity_data_access),
+        q1.component_access.is_compatible(&q2.component_access),
         false
     );
 }
@@ -512,7 +524,10 @@ fn without_filter() {
 fn without_filter_raw(storage_type: StorageType) {
     let mut world = World::new();
     world
-        .register_relation(ComponentDescriptor::new::<u32>(storage_type))
+        .register_component(ComponentDescriptor::new_targetted::<u32>(
+            storage_type,
+            TargetType::Entity,
+        ))
         .unwrap();
 
     struct MyRelation;
@@ -563,7 +578,10 @@ fn relations_dont_yield_components_raw(storage_type: StorageType) {
     let mut world = World::new();
 
     world
-        .register_relation(ComponentDescriptor::new::<u32>(storage_type))
+        .register_component(ComponentDescriptor::new_targetted::<u32>(
+            storage_type,
+            TargetType::Entity,
+        ))
         .unwrap();
 
     let _has_component = world.spawn().insert(10_u32).id();
@@ -603,7 +621,10 @@ fn duplicated_target_filters_raw(storage_type: StorageType) {
     let mut world = World::new();
 
     world
-        .register_relation(ComponentDescriptor::new::<u32>(storage_type))
+        .register_component(ComponentDescriptor::new_targetted::<u32>(
+            storage_type,
+            TargetType::Entity,
+        ))
         .unwrap();
 
     let target = world.spawn().id();
@@ -635,7 +656,10 @@ fn with_filter() {
 fn with_filter_raw(storage_type: StorageType) {
     let mut world = World::new();
     world
-        .register_relation(ComponentDescriptor::new::<u32>(storage_type))
+        .register_component(ComponentDescriptor::new_targetted::<u32>(
+            storage_type,
+            TargetType::Entity,
+        ))
         .unwrap();
 
     let no_relation = world.spawn().insert(10_u32).id();
@@ -689,7 +713,10 @@ fn with_filter_raw(storage_type: StorageType) {
 pub fn sparse_set_relation_registration() {
     let mut world = World::new();
     world
-        .register_relation(ComponentDescriptor::new::<String>(StorageType::SparseSet))
+        .register_component(ComponentDescriptor::new_targetted::<String>(
+            StorageType::SparseSet,
+            TargetType::Entity,
+        ))
         .unwrap();
     let mut q = world.query::<&Relation<String>>();
     assert!(q.iter(&world).next().is_none());
@@ -703,7 +730,7 @@ pub fn sparse_set_relation_registration() {
     use std::any::TypeId;
     let ty_id = world
         .components
-        .get_relation_kind(TypeId::of::<String>())
+        .component_info(TypeId::of::<String>())
         .unwrap()
         .id();
 

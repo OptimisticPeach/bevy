@@ -1,6 +1,6 @@
 use crate::{
     archetype::{Archetype, ArchetypeComponentId},
-    component::ComponentKindId,
+    component::ComponentId,
     query::Access,
     schedule::{BoxedRunCriteriaLabel, GraphNode, RunCriteriaLabel},
     system::{BoxedSystem, System, SystemId},
@@ -366,7 +366,7 @@ pub struct RunOnce {
     ran: bool,
     system_id: SystemId,
     archetype_data_access: Access<ArchetypeComponentId>,
-    entity_data_access: Access<ComponentKindId>,
+    entity_data_access: Access<ComponentId>,
 }
 
 impl Default for RunOnce {
@@ -394,7 +394,7 @@ impl System for RunOnce {
 
     fn new_archetype(&mut self, _archetype: &Archetype) {}
 
-    fn component_access(&self) -> &Access<ComponentKindId> {
+    fn component_access(&self) -> &Access<ComponentId> {
         &self.entity_data_access
     }
 

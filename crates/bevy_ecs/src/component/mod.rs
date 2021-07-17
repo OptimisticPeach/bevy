@@ -2,7 +2,7 @@ mod type_info;
 
 pub use type_info::*;
 
-use std::collections::HashMap;
+use std::{borrow::Cow, collections::HashMap};
 
 use crate::storage::SparseSetIndex;
 use std::{alloc::Layout, any::TypeId};
@@ -35,7 +35,7 @@ impl<T: Send + Sync + 'static> Component for T {}
 /// struct A;
 ///
 /// let mut world = World::default();
-/// world.register_component(ComponentDescriptor::new::<A>(StorageType::SparseSet));
+/// world.register_component(ComponentDescriptor::from_storage::<A>(StorageType::SparseSet));
 /// ```
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub enum StorageType {
@@ -46,16 +46,11 @@ pub enum StorageType {
     SparseSet,
 }
 
-impl Default for StorageType {
-    fn default() -> Self {
-        StorageType::Table
-    }
-}
-
 #[derive(Debug)]
 pub struct ComponentDescriptor {
-    name: String,
+    name: Cow<'static, str>,
     storage_type: StorageType,
+    target_type: TargetType,
     // SAFETY: This must remain private. It must only be set to "true" if this component is actually Send + Sync
     is_send_and_sync: bool,
     type_id: Option<TypeId>,
@@ -64,29 +59,21 @@ pub struct ComponentDescriptor {
 }
 
 impl ComponentDescriptor {
-    /// # Safety
-    /// Must be a valid drop pointer
-    pub unsafe fn new_dynamic(
-        name: Option<String>,
-        storage_type: StorageType,
-        is_send_and_sync: bool,
-        layout: Layout,
-        drop: unsafe fn(*mut u8),
-    ) -> Self {
-        Self {
-            name: name.unwrap_or_default(),
-            storage_type,
-            is_send_and_sync,
-            type_id: None,
-            layout,
-            drop,
-        }
+    // FIXME(Relations) Remove `from_storage` and `new_targetted` methods once we
+    // rebase ontop of derive(Component) so that this is moved to the type system :)
+    pub fn from_storage<T: Component>(storage_type: StorageType) -> Self {
+        Self::new_targetted::<T>(storage_type, TargetType::None)
     }
 
-    pub fn new<T: Component>(storage_type: StorageType) -> Self {
+    pub fn new<T: Component>() -> Self {
+        Self::new_targetted::<T>(StorageType::Table, TargetType::None)
+    }
+
+    pub fn new_targetted<T: Component>(storage_type: StorageType, target_type: TargetType) -> Self {
         Self {
-            name: std::any::type_name::<T>().to_string(),
+            name: std::any::type_name::<T>().into(),
             storage_type,
+            target_type,
             is_send_and_sync: true,
             type_id: Some(TypeId::of::<T>()),
             layout: Layout::new::<T>(),
@@ -94,10 +81,11 @@ impl ComponentDescriptor {
         }
     }
 
-    pub fn new_non_send_sync<T: 'static>(storage_type: StorageType) -> Self {
+    pub fn new_non_send_sync<T: 'static>() -> Self {
         Self {
-            name: std::any::type_name::<T>().to_string(),
-            storage_type,
+            name: std::any::type_name::<T>().into(),
+            storage_type: StorageType::Table,
+            target_type: TargetType::None,
             is_send_and_sync: false,
             type_id: Some(TypeId::of::<T>()),
             layout: Layout::new::<T>(),
@@ -139,8 +127,9 @@ impl ComponentDescriptor {
 impl From<TypeInfo> for ComponentDescriptor {
     fn from(type_info: TypeInfo) -> Self {
         Self {
-            name: type_info.type_name().to_string(),
-            storage_type: StorageType::default(),
+            name: type_info.type_name().into(),
+            storage_type: StorageType::Table,
+            target_type: TargetType::None,
             is_send_and_sync: type_info.is_send_and_sync(),
             type_id: Some(type_info.type_id()),
             drop: type_info.drop(),
@@ -150,9 +139,9 @@ impl From<TypeInfo> for ComponentDescriptor {
 }
 
 #[derive(Debug, Copy, Clone, Hash, Eq, PartialEq, PartialOrd, Ord)]
-pub struct ComponentKindId(usize);
+pub struct ComponentId(usize);
 
-impl SparseSetIndex for ComponentKindId {
+impl SparseSetIndex for ComponentId {
     #[inline]
     fn sparse_set_index(&self) -> usize {
         self.0
@@ -164,29 +153,65 @@ impl SparseSetIndex for ComponentKindId {
 }
 
 #[derive(Debug)]
-pub struct ComponentKindInfo {
+pub struct ComponentInfo {
     data: ComponentDescriptor,
-    id: ComponentKindId,
+    id: ComponentId,
 }
 
-impl ComponentKindInfo {
-    pub fn data_layout(&self) -> &ComponentDescriptor {
+impl ComponentInfo {
+    #[inline]
+    pub fn descriptor(&self) -> &ComponentDescriptor {
         &self.data
     }
 
-    pub fn id(&self) -> ComponentKindId {
+    #[inline]
+    pub fn name(&self) -> &str {
+        &self.data.name
+    }
+
+    #[inline]
+    pub fn type_id(&self) -> Option<TypeId> {
+        self.data.type_id
+    }
+
+    #[inline]
+    pub fn layout(&self) -> Layout {
+        self.data.layout
+    }
+
+    #[inline]
+    pub fn drop(&self) -> unsafe fn(*mut u8) {
+        self.data.drop
+    }
+
+    #[inline]
+    pub fn storage_type(&self) -> StorageType {
+        self.data.storage_type
+    }
+
+    #[inline]
+    pub fn is_send_and_sync(&self) -> bool {
+        self.data.is_send_and_sync
+    }
+
+    pub fn id(&self) -> ComponentId {
         self.id
     }
 }
 
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub enum TargetType {
+    None,
+    Entity,
+}
+
 #[derive(Debug, Default)]
 pub struct Components {
-    kinds: Vec<ComponentKindInfo>,
+    kinds: Vec<ComponentInfo>,
     // These are only used by bevy. Scripting/dynamic components should
     // use their own hashmap to lookup CustomId -> RelationKindId
-    component_indices: HashMap<TypeId, ComponentKindId, fxhash::FxBuildHasher>,
-    resource_indices: HashMap<TypeId, ComponentKindId, fxhash::FxBuildHasher>,
-    relation_indices: HashMap<TypeId, ComponentKindId, fxhash::FxBuildHasher>,
+    component_indices: HashMap<TypeId, ComponentId, fxhash::FxBuildHasher>,
+    resource_indices: HashMap<TypeId, ComponentId, fxhash::FxBuildHasher>,
 }
 
 #[derive(Debug, Error)]
@@ -195,126 +220,80 @@ pub enum RegistrationError {
     ComponentAlreadyExists { type_id: TypeId, name: String },
     #[error("A resource of type {name:?} ({type_id:?}) already exists")]
     ResourceAlreadyExists { type_id: TypeId, name: String },
-    #[error("A relation of type {name:?} ({type_id:?}) already exists")]
-    RelationAlreadyExists { type_id: TypeId, name: String },
 }
 
 impl Components {
-    pub fn new_relation_kind(
+    pub fn new_component(
         &mut self,
         layout: ComponentDescriptor,
-    ) -> Result<&ComponentKindInfo, RegistrationError> {
-        let id = ComponentKindId(self.kinds.len());
-        if self
-            .relation_indices
-            .contains_key(&layout.type_id().unwrap())
-        {
-            return Err(RegistrationError::RelationAlreadyExists {
-                type_id: layout.type_id().unwrap(),
-                name: layout.name,
-            });
-        }
-        self.relation_indices.insert(layout.type_id().unwrap(), id);
-        self.kinds.push(ComponentKindInfo { data: layout, id });
-        Ok(self.kinds.last().unwrap())
-    }
-
-    pub fn new_component_kind(
-        &mut self,
-        layout: ComponentDescriptor,
-    ) -> Result<&ComponentKindInfo, RegistrationError> {
-        let id = ComponentKindId(self.kinds.len());
+    ) -> Result<&ComponentInfo, RegistrationError> {
+        let id = ComponentId(self.kinds.len());
         if self
             .component_indices
             .contains_key(&layout.type_id().unwrap())
         {
             return Err(RegistrationError::ComponentAlreadyExists {
                 type_id: layout.type_id().unwrap(),
-                name: layout.name,
+                name: layout.name.to_string(),
             });
         }
         self.component_indices.insert(layout.type_id().unwrap(), id);
-        self.kinds.push(ComponentKindInfo { data: layout, id });
+        self.kinds.push(ComponentInfo { data: layout, id });
         Ok(self.kinds.last().unwrap())
     }
 
-    pub fn new_resource_kind(
+    pub fn new_resource(
         &mut self,
         layout: ComponentDescriptor,
-    ) -> Result<&ComponentKindInfo, RegistrationError> {
-        let id = ComponentKindId(self.kinds.len());
+    ) -> Result<&ComponentInfo, RegistrationError> {
+        let id = ComponentId(self.kinds.len());
         if self
             .resource_indices
             .contains_key(&layout.type_id().unwrap())
         {
             return Err(RegistrationError::ResourceAlreadyExists {
                 type_id: layout.type_id().unwrap(),
-                name: layout.name,
+                name: layout.name.to_string(),
             });
         }
         self.resource_indices.insert(layout.type_id().unwrap(), id);
-        self.kinds.push(ComponentKindInfo { data: layout, id });
+        self.kinds.push(ComponentInfo { data: layout, id });
         Ok(self.kinds.last().unwrap())
     }
 
-    pub fn get_entity_data_kind(&self, id: ComponentKindId) -> &ComponentKindInfo {
-        self.kinds.get(id.0).unwrap()
+    pub fn info(&self, id: ComponentId) -> Option<&ComponentInfo> {
+        self.kinds.get(id.0)
     }
 
-    pub fn get_component_kind(&self, type_id: TypeId) -> Option<&ComponentKindInfo> {
+    pub fn component_info(&self, type_id: TypeId) -> Option<&ComponentInfo> {
         let id = self.component_indices.get(&type_id).copied()?;
         Some(&self.kinds[id.0])
     }
 
-    pub fn get_resource_kind(&self, type_id: TypeId) -> Option<&ComponentKindInfo> {
+    pub fn resource_info(&self, type_id: TypeId) -> Option<&ComponentInfo> {
         let id = self.resource_indices.get(&type_id).copied()?;
         Some(&self.kinds[id.0])
     }
 
-    pub fn get_relation_kind(&self, type_id: TypeId) -> Option<&ComponentKindInfo> {
-        let id = self.relation_indices.get(&type_id).copied()?;
-        Some(&self.kinds[id.0])
-    }
-
-    pub fn get_relation_kind_or_insert(
-        &mut self,
-        layout: ComponentDescriptor,
-    ) -> &ComponentKindInfo {
-        match self
-            .relation_indices
-            .get(&layout.type_id().unwrap())
-            .copied()
-        {
-            Some(kind) => &self.kinds[kind.0],
-            None => self.new_relation_kind(layout).unwrap(),
-        }
-    }
-
-    pub fn get_component_kind_or_insert(
-        &mut self,
-        layout: ComponentDescriptor,
-    ) -> &ComponentKindInfo {
+    pub fn component_info_or_insert(&mut self, layout: ComponentDescriptor) -> &ComponentInfo {
         match self
             .component_indices
             .get(&layout.type_id().unwrap())
             .copied()
         {
             Some(kind) => &self.kinds[kind.0],
-            None => self.new_component_kind(layout).unwrap(),
+            None => self.new_component(layout).unwrap(),
         }
     }
 
-    pub fn get_resource_kind_or_insert(
-        &mut self,
-        layout: ComponentDescriptor,
-    ) -> &ComponentKindInfo {
+    pub fn resource_info_or_insert(&mut self, layout: ComponentDescriptor) -> &ComponentInfo {
         match self
             .resource_indices
             .get(&layout.type_id().unwrap())
             .copied()
         {
             Some(kind) => &self.kinds[kind.0],
-            None => self.new_resource_kind(layout).unwrap(),
+            None => self.new_resource(layout).unwrap(),
         }
     }
 

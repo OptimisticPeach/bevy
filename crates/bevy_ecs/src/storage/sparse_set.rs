@@ -1,7 +1,7 @@
 use bevy_utils::HashMap;
 
 use crate::{
-    component::{ComponentDescriptor, ComponentTicks, ComponentKindId, ComponentKindInfo},
+    component::{ComponentDescriptor, ComponentId, ComponentInfo, ComponentTicks},
     entity::Entity,
     storage::BlobVec,
 };
@@ -379,42 +379,42 @@ impl_sparse_set_index!(u8, u16, u32, u64, usize);
 
 #[derive(Default)]
 pub struct SparseSets {
-    component_sets: SparseSet<ComponentKindId, ComponentSparseSet>,
-    relation_sets: SparseSet<ComponentKindId, HashMap<Entity, ComponentSparseSet>>,
+    component_sets: SparseSet<ComponentId, ComponentSparseSet>,
+    relation_sets: SparseSet<ComponentId, HashMap<Entity, ComponentSparseSet>>,
 }
 
 impl SparseSets {
-    pub fn get_sets_of_relation_kind(
+    pub fn get_sets_of_component_id(
         &self,
-        relation_kind: ComponentKindId,
+        component_id: ComponentId,
     ) -> Option<&HashMap<Entity, ComponentSparseSet>> {
-        self.relation_sets.get(relation_kind)
+        self.relation_sets.get(component_id)
     }
 
     // FIXME(Relationships): https://discord.com/channels/691052431525675048/749335865876021248/862199702825205760
     // FIXME(Relationships): Deal with the ability to register components with a target, and relations without one
     pub fn get_or_insert(
         &mut self,
-        relation_kind: &ComponentKindInfo,
+        component_id: &ComponentInfo,
         target: Option<Entity>,
     ) -> &mut ComponentSparseSet {
         match target {
             None => self
                 .component_sets
-                .get_or_insert_with(relation_kind.id(), || {
-                    ComponentSparseSet::new(relation_kind.data_layout(), 64)
+                .get_or_insert_with(component_id.id(), || {
+                    ComponentSparseSet::new(component_id.descriptor(), 64)
                 }),
             Some(target) => self
                 .relation_sets
-                .get_or_insert_with(relation_kind.id(), HashMap::default)
+                .get_or_insert_with(component_id.id(), HashMap::default)
                 .entry(target)
-                .or_insert_with(|| ComponentSparseSet::new(relation_kind.data_layout(), 64)),
+                .or_insert_with(|| ComponentSparseSet::new(component_id.descriptor(), 64)),
         }
     }
 
     pub fn get(
         &self,
-        component_id: ComponentKindId,
+        component_id: ComponentId,
         target: Option<Entity>,
     ) -> Option<&ComponentSparseSet> {
         match &target {
@@ -425,7 +425,7 @@ impl SparseSets {
 
     pub fn get_mut(
         &mut self,
-        component_id: ComponentKindId,
+        component_id: ComponentId,
         target: Option<Entity>,
     ) -> Option<&mut ComponentSparseSet> {
         match &target {

@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::{
     archetype::{Archetype, ArchetypeComponentId, ArchetypeGeneration, ArchetypeId},
-    component::{Component, ComponentKindId},
+    component::{Component, ComponentId},
     entity::Entity,
     query::{
         Access, Fetch, FetchState, FilterFetch, FilteredAccess, QueryCombinationIter, QueryIter,
@@ -67,8 +67,8 @@ where
     F::Fetch: FilterFetch,
 {
     world_id: WorldId,
-    pub(crate) archetype_entity_data_access: Access<ArchetypeComponentId>,
-    pub(crate) entity_data_access: FilteredAccess<ComponentKindId>,
+    pub(crate) archetype_component_access: Access<ArchetypeComponentId>,
+    pub(crate) component_access: FilteredAccess<ComponentId>,
 
     pub(crate) current_relation_filter: QueryRelationFilter<Q, F>,
     pub(crate) relation_filter_accesses: HashMap<QueryRelationFilter<Q, F>, QueryAccessCache>,
@@ -102,12 +102,12 @@ where
             world_id: world.id(),
             fetch_state,
             filter_state,
-            entity_data_access: component_access,
+            component_access,
 
             current_relation_filter: Default::default(),
             relation_filter_accesses: HashMap::new(),
 
-            archetype_entity_data_access: Default::default(),
+            archetype_component_access: Default::default(),
         };
         state.set_relation_filter(world, QueryRelationFilter::default());
         state.validate_world_and_update_archetypes(world);
@@ -197,7 +197,7 @@ where
                 Self::new_archetype(
                     &self.fetch_state,
                     &self.filter_state,
-                    &mut self.archetype_entity_data_access,
+                    &mut self.archetype_component_access,
                     &*relation_filter,
                     cache,
                     archetype,

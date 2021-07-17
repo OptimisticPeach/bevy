@@ -416,7 +416,7 @@ where
             .ok_or(QueryComponentError::NoSuchEntity)?;
         let component_id = world
             .components()
-            .get_component_kind(TypeId::of::<T>())
+            .component_info(TypeId::of::<T>())
             .ok_or(QueryComponentError::MissingComponent)?
             .id();
         let archetype_component = entity_ref
@@ -425,7 +425,7 @@ where
             .ok_or(QueryComponentError::MissingComponent)?;
         if self
             .state
-            .archetype_entity_data_access
+            .archetype_component_access
             .has_read(archetype_component)
         {
             entity_ref
@@ -467,7 +467,7 @@ where
             .ok_or(QueryComponentError::NoSuchEntity)?;
         let component_id = world
             .components()
-            .get_component_kind(TypeId::of::<T>())
+            .component_info(TypeId::of::<T>())
             .ok_or(QueryComponentError::MissingComponent)?
             .id();
         let archetype_component = entity_ref
@@ -476,7 +476,7 @@ where
             .ok_or(QueryComponentError::MissingComponent)?;
         if self
             .state
-            .archetype_entity_data_access
+            .archetype_component_access
             .has_write(archetype_component)
         {
             entity_ref

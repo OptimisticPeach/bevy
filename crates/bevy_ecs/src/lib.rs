@@ -85,7 +85,9 @@ mod tests {
     fn random_access() {
         let mut world = World::new();
         world
-            .register_component(ComponentDescriptor::new::<i32>(StorageType::SparseSet))
+            .register_component(ComponentDescriptor::from_storage::<i32>(
+                StorageType::SparseSet,
+            ))
             .unwrap();
         let e = world.spawn().insert_bundle(("abc", 123)).id();
         let f = world.spawn().insert_bundle(("def", 456, true)).id();
@@ -118,7 +120,9 @@ mod tests {
 
         let mut world = World::new();
         world
-            .register_component(ComponentDescriptor::new::<i32>(StorageType::SparseSet))
+            .register_component(ComponentDescriptor::from_storage::<i32>(
+                StorageType::SparseSet,
+            ))
             .unwrap();
         let e1 = world.spawn().insert_bundle(Foo { x: "abc", y: 123 }).id();
         let e2 = world.spawn().insert_bundle(("def", 456, true)).id();
@@ -199,7 +203,9 @@ mod tests {
     fn despawn_mixed_storage() {
         let mut world = World::new();
         world
-            .register_component(ComponentDescriptor::new::<i32>(StorageType::SparseSet))
+            .register_component(ComponentDescriptor::from_storage::<i32>(
+                StorageType::SparseSet,
+            ))
             .unwrap();
         let e = world.spawn().insert_bundle(("abc", 123)).id();
         let f = world.spawn().insert_bundle(("def", 456)).id();
@@ -302,7 +308,9 @@ mod tests {
     fn par_for_each_sparse() {
         let mut world = World::new();
         world
-            .register_component(ComponentDescriptor::new::<i32>(StorageType::SparseSet))
+            .register_component(ComponentDescriptor::from_storage::<i32>(
+                StorageType::SparseSet,
+            ))
             .unwrap();
         let task_pool = TaskPool::default();
         let e1 = world.spawn().insert(1).id();
@@ -372,7 +380,9 @@ mod tests {
     fn query_filter_with_sparse() {
         let mut world = World::new();
         world
-            .register_component(ComponentDescriptor::new::<f32>(StorageType::SparseSet))
+            .register_component(ComponentDescriptor::from_storage::<f32>(
+                StorageType::SparseSet,
+            ))
             .unwrap();
         world.spawn().insert_bundle((123u32, 1.0f32));
         world.spawn().insert(456u32);
@@ -388,7 +398,9 @@ mod tests {
     fn query_filter_with_sparse_for_each() {
         let mut world = World::new();
         world
-            .register_component(ComponentDescriptor::new::<f32>(StorageType::SparseSet))
+            .register_component(ComponentDescriptor::from_storage::<f32>(
+                StorageType::SparseSet,
+            ))
             .unwrap();
         world.spawn().insert_bundle((123u32, 1.0f32));
         world.spawn().insert(456u32);
@@ -431,7 +443,9 @@ mod tests {
     fn query_optional_component_sparse() {
         let mut world = World::new();
         world
-            .register_component(ComponentDescriptor::new::<bool>(StorageType::SparseSet))
+            .register_component(ComponentDescriptor::from_storage::<bool>(
+                StorageType::SparseSet,
+            ))
             .unwrap();
         let e = world.spawn().insert_bundle(("abc", 123)).id();
         let f = world.spawn().insert_bundle(("def", 456, true)).id();
@@ -449,7 +463,9 @@ mod tests {
     fn query_optional_component_sparse_no_match() {
         let mut world = World::new();
         world
-            .register_component(ComponentDescriptor::new::<bool>(StorageType::SparseSet))
+            .register_component(ComponentDescriptor::from_storage::<bool>(
+                StorageType::SparseSet,
+            ))
             .unwrap();
         let e = world.spawn().insert_bundle(("abc", 123)).id();
         let f = world.spawn().insert_bundle(("def", 456)).id();
@@ -536,7 +552,9 @@ mod tests {
     fn sparse_set_add_remove_many() {
         let mut world = World::default();
         world
-            .register_component(ComponentDescriptor::new::<usize>(StorageType::SparseSet))
+            .register_component(ComponentDescriptor::from_storage::<usize>(
+                StorageType::SparseSet,
+            ))
             .unwrap();
         let mut entities = Vec::with_capacity(1000);
         for _ in 0..4 {
@@ -594,7 +612,7 @@ mod tests {
     fn remove_tracking() {
         let mut world = World::new();
         world
-            .register_component(ComponentDescriptor::new::<&'static str>(
+            .register_component(ComponentDescriptor::from_storage::<&'static str>(
                 StorageType::SparseSet,
             ))
             .unwrap();
@@ -885,7 +903,7 @@ mod tests {
         world.insert_resource(123);
         let resource_id = world
             .components()
-            .get_resource_kind(TypeId::of::<i32>())
+            .resource_info(TypeId::of::<i32>())
             .unwrap()
             .id();
         let archetype_component_id = world
@@ -949,7 +967,7 @@ mod tests {
 
         let current_resource_id = world
             .components()
-            .get_resource_kind(TypeId::of::<i32>())
+            .resource_info(TypeId::of::<i32>())
             .unwrap()
             .id();
         assert_eq!(
@@ -1164,18 +1182,18 @@ mod tests {
         let mut expected = FilteredAccess::default();
         let i32_id = world
             .components
-            .get_component_kind(TypeId::of::<i32>())
+            .component_info(TypeId::of::<i32>())
             .unwrap()
             .id();
         let f64_id = world
             .components
-            .get_component_kind(TypeId::of::<f64>())
+            .component_info(TypeId::of::<f64>())
             .unwrap()
             .id();
         expected.add_write(i32_id);
         expected.add_read(f64_id);
         assert!(
-            query.entity_data_access.eq(&expected),
+            query.component_access.eq(&expected),
             "ComponentId access from query fetch and query filter should be combined"
         );
     }
@@ -1230,7 +1248,9 @@ mod tests {
         let (dropck2, dropped2) = DropCk::new_pair();
         let mut world = World::default();
         world
-            .register_component(ComponentDescriptor::new::<DropCk>(StorageType::SparseSet))
+            .register_component(ComponentDescriptor::from_storage::<DropCk>(
+                StorageType::SparseSet,
+            ))
             .unwrap();
         world.spawn().insert(dropck1).insert(dropck2);
         assert_eq!(dropped1.load(Ordering::Relaxed), 1);
