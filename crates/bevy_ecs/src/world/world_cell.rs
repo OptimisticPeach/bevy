@@ -183,11 +183,7 @@ impl<'w> WorldCell<'w> {
     }
 
     pub fn get_resource<T: Component>(&self) -> Option<WorldBorrow<'_, T>> {
-        let component_id = self
-            .world
-            .components
-            .resource_info(TypeId::of::<T>())?
-            .id();
+        let component_id = self.world.components.resource_info(TypeId::of::<T>())?.id();
         let resource_archetype = self.world.archetypes.resource();
         let archetype_component_id =
             resource_archetype.get_archetype_component_id(component_id, None)?;
@@ -200,11 +196,7 @@ impl<'w> WorldCell<'w> {
     }
 
     pub fn get_resource_mut<T: Component>(&self) -> Option<WorldBorrowMut<'_, T>> {
-        let component_id = self
-            .world
-            .components
-            .resource_info(TypeId::of::<T>())?
-            .id();
+        let component_id = self.world.components.resource_info(TypeId::of::<T>())?.id();
         let resource_archetype = self.world.archetypes.resource();
         let archetype_component_id =
             resource_archetype.get_archetype_component_id(component_id, None)?;
@@ -220,11 +212,7 @@ impl<'w> WorldCell<'w> {
     }
 
     pub fn get_non_send<T: 'static>(&self) -> Option<WorldBorrow<'_, T>> {
-        let component_id = self
-            .world
-            .components
-            .resource_info(TypeId::of::<T>())?
-            .id();
+        let component_id = self.world.components.resource_info(TypeId::of::<T>())?.id();
         let resource_archetype = self.world.archetypes.resource();
         let archetype_component_id =
             resource_archetype.get_archetype_component_id(component_id, None)?;
@@ -237,11 +225,7 @@ impl<'w> WorldCell<'w> {
     }
 
     pub fn get_non_send_mut<T: 'static>(&self) -> Option<WorldBorrowMut<'_, T>> {
-        let component_id = self
-            .world
-            .components
-            .resource_info(TypeId::of::<T>())?
-            .id();
+        let component_id = self.world.components.resource_info(TypeId::of::<T>())?.id();
         let resource_archetype = self.world.archetypes.resource();
         let archetype_component_id =
             resource_archetype.get_archetype_component_id(component_id, None)?;
