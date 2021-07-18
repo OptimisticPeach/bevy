@@ -559,9 +559,8 @@ mod tests {
     #[test]
     fn table() {
         let mut components = Components::default();
-        let component_id = components.component_info_or_insert(
-            ComponentDescriptor::from_storage::<usize>(StorageType::Table),
-        );
+        let component_id = components
+            .component_info_or_insert(ComponentDescriptor::new::<usize>(StorageType::Table));
         let mut table = Table::with_capacity(0, 1);
         table.add_column(component_id, None);
         let entities = (0..200).map(Entity::new).collect::<Vec<_>>();

@@ -107,7 +107,7 @@ unsafe impl<T: Component> FetchState for WithState<T> {
     fn init(world: &mut World) -> Self {
         let component_info = world
             .components
-            .component_info_or_insert(ComponentDescriptor::new::<T>());
+            .component_info_or_insert(ComponentDescriptor::default::<T>());
         Self {
             component_id: component_info.id(),
             storage_type: component_info.storage_type(),
@@ -245,7 +245,7 @@ unsafe impl<T: Component> FetchState for WithoutState<T> {
     fn init(world: &mut World) -> Self {
         let component_info = world
             .components
-            .component_info_or_insert(ComponentDescriptor::new::<T>());
+            .component_info_or_insert(ComponentDescriptor::default::<T>());
         Self {
             component_id: component_info.id(),
             storage_type: component_info.storage_type(),
@@ -351,7 +351,7 @@ unsafe impl<T: Component> FetchState for WithoutRelationState<T> {
     fn init(world: &mut World) -> Self {
         let kind_info = world
             .components
-            .component_info_or_insert(ComponentDescriptor::new::<T>());
+            .component_info_or_insert(ComponentDescriptor::default::<T>());
 
         Self {
             marker: PhantomData,
@@ -492,7 +492,7 @@ unsafe impl<T: Component> FetchState for WithRelationState<T> {
     fn init(world: &mut World) -> Self {
         let kind_info = world
             .components
-            .component_info_or_insert(ComponentDescriptor::new::<T>());
+            .component_info_or_insert(ComponentDescriptor::default::<T>());
 
         Self {
             marker: PhantomData,
@@ -930,7 +930,7 @@ macro_rules! impl_tick_filter {
                 let component_info = world
                     .components
                     .component_info_or_insert(
-                        ComponentDescriptor::new::<T>()
+                        ComponentDescriptor::default::<T>()
                     );
 
                 Self {

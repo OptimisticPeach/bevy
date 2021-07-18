@@ -523,7 +523,7 @@ mod tests {
 
         struct DenseDropCk(DropCk);
         world
-            .register_component(ComponentDescriptor::from_storage::<DropCk>(StorageType::SparseSet))
+            .register_component(ComponentDescriptor::new::<DropCk>(StorageType::SparseSet))
             .unwrap();
 
         let mut command_queue = CommandQueue::default();

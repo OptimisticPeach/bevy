@@ -364,7 +364,7 @@ impl<'w> EntityMut<'w> {
             let kind = self
                 .world
                 .components
-                .component_info_or_insert(ComponentDescriptor::new::<T>());
+                .component_info_or_insert(ComponentDescriptor::default::<T>());
             self.world.bundles.init_relation_bundle_info(kind, target)
         };
 
