@@ -325,7 +325,7 @@ impl<'w> EntityMut<'w> {
         let bundle_info = self
             .world
             .bundles
-            .init_info::<T>(&mut self.world.components);
+            .init_bundle_info::<T>(&mut self.world.components);
         let (archetype, bundle_status, new_location) = unsafe {
             Self::get_insert_bundle_info(
                 self.entity,
@@ -361,10 +361,11 @@ impl<'w> EntityMut<'w> {
         let change_tick = self.world.change_tick();
 
         let bundle_info = {
-            let kind = self.world.components.component_info_or_insert(
-                ComponentDescriptor::from_storage::<T>(StorageType::Table),
-            );
-            self.world.bundles.init_relation_info(kind, Some(target))
+            let kind = self
+                .world
+                .components
+                .component_info_or_insert(ComponentDescriptor::new::<T>());
+            self.world.bundles.init_relation_bundle_info(kind, target)
         };
 
         let (archetype, bundle_status, new_location) = unsafe {
@@ -473,7 +474,7 @@ impl<'w> EntityMut<'w> {
         let entities = &mut self.world.entities;
         let removed_components = &mut self.world.removed_components;
 
-        let bundle_info = self.world.bundles.init_info::<T>(entity_data);
+        let bundle_info = self.world.bundles.init_bundle_info::<T>(entity_data);
         let old_location = self.location;
         let new_archetype_id = unsafe {
             remove_bundle_from_archetype(
@@ -553,7 +554,7 @@ impl<'w> EntityMut<'w> {
 
     pub fn remove_relation<T: Component>(&mut self, target: Entity) -> Option<T> {
         let kind = self.world.components.component_info(TypeId::of::<T>())?;
-        let bundle_info = self.world.bundles.init_relation_info(kind, Some(target));
+        let bundle_info = self.world.bundles.init_relation_bundle_info(kind, target);
 
         let kind_id = kind.id();
         let archetypes = &mut self.world.archetypes;
@@ -644,7 +645,7 @@ impl<'w> EntityMut<'w> {
         let entities = &mut self.world.entities;
         let removed_components = &mut self.world.removed_components;
 
-        let bundle_info = self.world.bundles.init_info::<T>(entity_data);
+        let bundle_info = self.world.bundles.init_bundle_info::<T>(entity_data);
         let old_location = self.location;
         let new_archetype_id = unsafe {
             remove_bundle_from_archetype(

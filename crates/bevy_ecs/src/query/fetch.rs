@@ -284,7 +284,7 @@ unsafe impl<T: Component> FetchState for ReadState<T> {
     fn init(world: &mut World) -> Self {
         let component_info = world
             .components
-            .component_info_or_insert(ComponentDescriptor::from_storage::<T>(StorageType::Table));
+            .component_info_or_insert(ComponentDescriptor::new::<T>());
         ReadState {
             component_id: component_info.id(),
             storage_type: component_info.storage_type(),
@@ -489,7 +489,7 @@ unsafe impl<T: Component> FetchState for WriteState<T> {
     fn init(world: &mut World) -> Self {
         let component_info = world
             .components
-            .component_info_or_insert(ComponentDescriptor::from_storage::<T>(StorageType::Table));
+            .component_info_or_insert(ComponentDescriptor::new::<T>());
         WriteState {
             component_id: component_info.id(),
             storage_type: component_info.storage_type(),
@@ -958,7 +958,7 @@ unsafe impl<T: Component> FetchState for WriteRelationState<T> {
     fn init(world: &mut World) -> Self {
         let kind_info = world
             .components
-            .component_info_or_insert(ComponentDescriptor::from_storage::<T>(StorageType::Table));
+            .component_info_or_insert(ComponentDescriptor::new::<T>());
 
         Self {
             p: PhantomData,
@@ -1491,7 +1491,7 @@ unsafe impl<T: Component> FetchState for ChangeTrackersState<T> {
     fn init(world: &mut World) -> Self {
         let component_info = world
             .components
-            .component_info_or_insert(ComponentDescriptor::from_storage::<T>(StorageType::Table));
+            .component_info_or_insert(ComponentDescriptor::new::<T>());
 
         Self {
             component_id: component_info.id(),

@@ -34,7 +34,9 @@ where
 
         let (lower, upper) = iter.size_hint();
 
-        let bundle_info = world.bundles.init_info::<I::Item>(&mut world.components);
+        let bundle_info = world
+            .bundles
+            .init_bundle_info::<I::Item>(&mut world.components);
 
         let length = upper.unwrap_or(lower);
         // SAFE: empty archetype exists and bundle components were initialized above

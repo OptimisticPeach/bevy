@@ -543,7 +543,7 @@ impl World {
     pub fn insert_resource<T: Component>(&mut self, value: T) {
         let component_id = self
             .components
-            .resource_info_or_insert(ComponentDescriptor::from_storage::<T>(StorageType::Table))
+            .resource_info_or_insert(ComponentDescriptor::new::<T>())
             .id();
         // SAFE: component_id just initialized and corresponds to resource of type T
         unsafe { self.insert_resource_with_id(component_id, value) };
@@ -865,7 +865,7 @@ impl World {
     pub(crate) fn initialize_resource<T: Component>(&mut self) -> ComponentId {
         let component_id = self
             .components
-            .resource_info_or_insert(ComponentDescriptor::from_storage::<T>(StorageType::Table))
+            .resource_info_or_insert(ComponentDescriptor::new::<T>())
             .id();
         // SAFE: resource initialized above
         unsafe { self.initialize_resource_internal(component_id) };

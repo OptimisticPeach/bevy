@@ -212,7 +212,8 @@ impl BundleInfo {
 pub struct Bundles {
     bundle_infos: Vec<BundleInfo>,
     bundle_ids: HashMap<TypeId, BundleId>,
-    relation_bundle_ids: HashMap<(ComponentId, Option<Entity>), BundleId>,
+    // FIXME(Relations): Figure out a way to put relations in a bundle and then remove this
+    relation_bundle_ids: HashMap<(ComponentId, Entity), BundleId>,
 }
 
 impl Bundles {
@@ -222,35 +223,35 @@ impl Bundles {
     }
 
     #[inline]
-    pub fn get_id(&self, type_id: TypeId) -> Option<BundleId> {
+    pub fn get_bundle_id(&self, type_id: TypeId) -> Option<BundleId> {
         self.bundle_ids.get(&type_id).cloned()
     }
 
     pub fn get_relation_bundle_id(
         &self,
         component_id: ComponentId,
-        target: Option<Entity>,
+        target: Entity,
     ) -> Option<BundleId> {
         self.relation_bundle_ids
             .get(&(component_id, target))
             .copied()
     }
 
-    pub(crate) fn init_relation_info<'a>(
+    pub(crate) fn init_relation_bundle_info<'a>(
         &'a mut self,
-        component_id: &ComponentInfo,
-        target: Option<Entity>,
+        component_info: &ComponentInfo,
+        target: Entity,
     ) -> &'a BundleInfo {
         let bundle_infos = &mut self.bundle_infos;
         let id = self
             .relation_bundle_ids
-            .entry((component_id.id(), target))
+            .entry((component_info.id(), target))
             .or_insert_with(|| {
                 let id = BundleId(bundle_infos.len());
                 let bundle_info = BundleInfo {
                     id,
-                    component_ids: vec![(component_id.id(), target)],
-                    storage_types: vec![component_id.storage_type()],
+                    component_ids: vec![(component_info.id(), Some(target))],
+                    storage_types: vec![component_info.storage_type()],
                 };
                 bundle_infos.push(bundle_info);
                 id
@@ -258,7 +259,7 @@ impl Bundles {
         &self.bundle_infos[id.0]
     }
 
-    pub(crate) fn init_info<'a, T: Bundle>(
+    pub(crate) fn init_bundle_info<'a, T: Bundle>(
         &'a mut self,
         components: &mut Components,
     ) -> &'a BundleInfo {
@@ -266,40 +267,36 @@ impl Bundles {
         let id = self.bundle_ids.entry(TypeId::of::<T>()).or_insert_with(|| {
             let type_info = T::type_info();
             let id = BundleId(bundle_infos.len());
-            let bundle_info =
-                initialize_bundle(std::any::type_name::<T>(), &type_info, id, components);
+            let bundle_info = {
+                let mut component_ids = Vec::new();
+                let mut storage_types = Vec::new();
+
+                for type_info in type_info {
+                    let kind_info = components.component_info_or_insert(type_info.clone().into());
+                    component_ids.push((kind_info.id(), None));
+                    storage_types.push(kind_info.storage_type());
+                }
+
+                let mut deduped = component_ids.clone();
+                deduped.sort();
+                deduped.dedup();
+                if deduped.len() != component_ids.len() {
+                    panic!(
+                        "Bundle {} has duplicate components",
+                        std::any::type_name::<T>()
+                    );
+                }
+
+                BundleInfo {
+                    id,
+                    component_ids,
+                    storage_types,
+                }
+            };
+
             bundle_infos.push(bundle_info);
             id
         });
         &self.bundle_infos[id.0]
-    }
-}
-
-fn initialize_bundle(
-    bundle_type_name: &'static str,
-    type_info: &[TypeInfo],
-    id: BundleId,
-    components: &mut Components,
-) -> BundleInfo {
-    let mut component_ids = Vec::new();
-    let mut storage_types = Vec::new();
-
-    for type_info in type_info {
-        let kind_info = components.component_info_or_insert(type_info.clone().into());
-        component_ids.push((kind_info.id(), None));
-        storage_types.push(kind_info.storage_type());
-    }
-
-    let mut deduped = component_ids.clone();
-    deduped.sort();
-    deduped.dedup();
-    if deduped.len() != component_ids.len() {
-        panic!("Bundle {} has duplicate components", bundle_type_name);
-    }
-
-    BundleInfo {
-        id,
-        component_ids,
-        storage_types,
     }
 }

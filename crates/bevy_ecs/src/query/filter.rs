@@ -107,7 +107,7 @@ unsafe impl<T: Component> FetchState for WithState<T> {
     fn init(world: &mut World) -> Self {
         let component_info = world
             .components
-            .component_info_or_insert(ComponentDescriptor::from_storage::<T>(StorageType::Table));
+            .component_info_or_insert(ComponentDescriptor::new::<T>());
         Self {
             component_id: component_info.id(),
             storage_type: component_info.storage_type(),
@@ -245,7 +245,7 @@ unsafe impl<T: Component> FetchState for WithoutState<T> {
     fn init(world: &mut World) -> Self {
         let component_info = world
             .components
-            .component_info_or_insert(ComponentDescriptor::from_storage::<T>(StorageType::Table));
+            .component_info_or_insert(ComponentDescriptor::new::<T>());
         Self {
             component_id: component_info.id(),
             storage_type: component_info.storage_type(),
@@ -351,7 +351,7 @@ unsafe impl<T: Component> FetchState for WithoutRelationState<T> {
     fn init(world: &mut World) -> Self {
         let kind_info = world
             .components
-            .component_info_or_insert(ComponentDescriptor::from_storage::<T>(StorageType::Table));
+            .component_info_or_insert(ComponentDescriptor::new::<T>());
 
         Self {
             marker: PhantomData,
@@ -492,7 +492,7 @@ unsafe impl<T: Component> FetchState for WithRelationState<T> {
     fn init(world: &mut World) -> Self {
         let kind_info = world
             .components
-            .component_info_or_insert(ComponentDescriptor::from_storage::<T>(StorageType::Table));
+            .component_info_or_insert(ComponentDescriptor::new::<T>());
 
         Self {
             marker: PhantomData,
@@ -621,7 +621,7 @@ unsafe impl<T: Bundle> FetchState for WithBundleState<T> {
     type RelationFilter = ();
 
     fn init(world: &mut World) -> Self {
-        let bundle_info = world.bundles.init_info::<T>(&mut world.components);
+        let bundle_info = world.bundles.init_bundle_info::<T>(&mut world.components);
         let components = &world.components;
         Self {
             component_ids: bundle_info.component_ids.clone(),
@@ -930,7 +930,7 @@ macro_rules! impl_tick_filter {
                 let component_info = world
                     .components
                     .component_info_or_insert(
-                        ComponentDescriptor::from_storage::<T>(StorageType::Table)
+                        ComponentDescriptor::new::<T>()
                     );
 
                 Self {
