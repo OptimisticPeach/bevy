@@ -365,8 +365,8 @@ where
 pub struct RunOnce {
     ran: bool,
     system_id: SystemId,
-    archetype_data_access: Access<ArchetypeComponentId>,
-    entity_data_access: Access<ComponentId>,
+    archetype_component_access: Access<ArchetypeComponentId>,
+    component_access: Access<ComponentId>,
 }
 
 impl Default for RunOnce {
@@ -374,8 +374,8 @@ impl Default for RunOnce {
         Self {
             ran: false,
             system_id: SystemId::new(),
-            archetype_data_access: Default::default(),
-            entity_data_access: Default::default(),
+            archetype_component_access: Default::default(),
+            component_access: Default::default(),
         }
     }
 }
@@ -395,11 +395,11 @@ impl System for RunOnce {
     fn new_archetype(&mut self, _archetype: &Archetype) {}
 
     fn component_access(&self) -> &Access<ComponentId> {
-        &self.entity_data_access
+        &self.component_access
     }
 
     fn archetype_component_access(&self) -> &Access<ArchetypeComponentId> {
-        &self.archetype_data_access
+        &self.archetype_component_access
     }
 
     fn is_send(&self) -> bool {

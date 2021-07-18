@@ -207,7 +207,7 @@ pub enum TargetType {
 
 #[derive(Debug, Default)]
 pub struct Components {
-    kinds: Vec<ComponentInfo>,
+    infos: Vec<ComponentInfo>,
     // These are only used by bevy. Scripting/dynamic components should
     // use their own hashmap to lookup CustomId -> RelationKindId
     component_indices: HashMap<TypeId, ComponentId, fxhash::FxBuildHasher>,
@@ -227,7 +227,7 @@ impl Components {
         &mut self,
         layout: ComponentDescriptor,
     ) -> Result<&ComponentInfo, RegistrationError> {
-        let id = ComponentId(self.kinds.len());
+        let id = ComponentId(self.infos.len());
         if self
             .component_indices
             .contains_key(&layout.type_id().unwrap())
@@ -238,15 +238,15 @@ impl Components {
             });
         }
         self.component_indices.insert(layout.type_id().unwrap(), id);
-        self.kinds.push(ComponentInfo { data: layout, id });
-        Ok(self.kinds.last().unwrap())
+        self.infos.push(ComponentInfo { data: layout, id });
+        Ok(self.infos.last().unwrap())
     }
 
     pub fn new_resource(
         &mut self,
         layout: ComponentDescriptor,
     ) -> Result<&ComponentInfo, RegistrationError> {
-        let id = ComponentId(self.kinds.len());
+        let id = ComponentId(self.infos.len());
         if self
             .resource_indices
             .contains_key(&layout.type_id().unwrap())
@@ -257,22 +257,22 @@ impl Components {
             });
         }
         self.resource_indices.insert(layout.type_id().unwrap(), id);
-        self.kinds.push(ComponentInfo { data: layout, id });
-        Ok(self.kinds.last().unwrap())
+        self.infos.push(ComponentInfo { data: layout, id });
+        Ok(self.infos.last().unwrap())
     }
 
     pub fn info(&self, id: ComponentId) -> Option<&ComponentInfo> {
-        self.kinds.get(id.0)
+        self.infos.get(id.0)
     }
 
     pub fn component_info(&self, type_id: TypeId) -> Option<&ComponentInfo> {
         let id = self.component_indices.get(&type_id).copied()?;
-        Some(&self.kinds[id.0])
+        Some(&self.infos[id.0])
     }
 
     pub fn resource_info(&self, type_id: TypeId) -> Option<&ComponentInfo> {
         let id = self.resource_indices.get(&type_id).copied()?;
-        Some(&self.kinds[id.0])
+        Some(&self.infos[id.0])
     }
 
     pub fn component_info_or_insert(&mut self, layout: ComponentDescriptor) -> &ComponentInfo {
@@ -281,7 +281,7 @@ impl Components {
             .get(&layout.type_id().unwrap())
             .copied()
         {
-            Some(kind) => &self.kinds[kind.0],
+            Some(kind) => &self.infos[kind.0],
             None => self.new_component(layout).unwrap(),
         }
     }
@@ -292,19 +292,19 @@ impl Components {
             .get(&layout.type_id().unwrap())
             .copied()
         {
-            Some(kind) => &self.kinds[kind.0],
+            Some(kind) => &self.infos[kind.0],
             None => self.new_resource(layout).unwrap(),
         }
     }
 
     #[inline]
     pub fn len(&self) -> usize {
-        self.kinds.len()
+        self.infos.len()
     }
 
     #[inline]
     pub fn is_empty(&self) -> bool {
-        self.kinds.is_empty()
+        self.infos.is_empty()
     }
 }
 

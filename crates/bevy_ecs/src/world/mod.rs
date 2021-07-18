@@ -506,8 +506,8 @@ impl World {
     /// Returns an iterator of entities that had components of type `T` removed
     /// since the last call to [World::clear_trackers].
     pub fn removed<T: Component>(&self) -> std::iter::Cloned<std::slice::Iter<'_, Entity>> {
-        if let Some(kind_info) = self.components.component_info(TypeId::of::<T>()) {
-            self.removed_with_id(kind_info.id(), None)
+        if let Some(component_info) = self.components.component_info(TypeId::of::<T>()) {
+            self.removed_with_id(component_info.id(), None)
         } else {
             [].iter().cloned()
         }
@@ -601,7 +601,7 @@ impl World {
     pub fn contains_resource<T: Component>(&self) -> bool {
         self.components
             .resource_info(TypeId::of::<T>())
-            .and_then(|kind_info| self.get_populated_resource_column(kind_info.id()))
+            .and_then(|component_info| self.get_populated_resource_column(component_info.id()))
             .is_some()
     }
 

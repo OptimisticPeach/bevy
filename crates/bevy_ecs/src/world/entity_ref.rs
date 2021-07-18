@@ -78,8 +78,14 @@ impl<'w> EntityRef<'w> {
     pub fn get<T: Component>(&self) -> Option<&'w T> {
         // SAFE: entity location is valid and returned component is of type T
         unsafe {
-            get_component_with_type(self.world, TypeId::of::<T>(), self.entity, self.location)
-                .map(|value| &*value.cast::<T>())
+            get_component_with_type(
+                self.world,
+                TypeId::of::<T>(),
+                None,
+                self.entity,
+                self.location,
+            )
+            .map(|value| &*value.cast::<T>())
         }
     }
 
@@ -87,10 +93,10 @@ impl<'w> EntityRef<'w> {
     pub fn get_relation<T: Component>(&self, target: Entity) -> Option<&'w T> {
         // SAFE: entity location is valid and returned component is of type T
         unsafe {
-            get_relation_with_type(
+            get_component_with_type(
                 self.world,
                 TypeId::of::<T>(),
-                target,
+                Some(target),
                 self.entity,
                 self.location,
             )
@@ -108,15 +114,21 @@ impl<'w> EntityRef<'w> {
         change_tick: u32,
     ) -> Option<Mut<'w, T>> {
         // SAFETY: Caller
-        get_component_and_ticks_with_type(self.world, TypeId::of::<T>(), self.entity, self.location)
-            .map(|(value, ticks)| Mut {
-                value: &mut *value.cast::<T>(),
-                ticks: Ticks {
-                    component_ticks: &mut *ticks,
-                    last_change_tick,
-                    change_tick,
-                },
-            })
+        get_component_and_ticks(
+            self.world,
+            TypeId::of::<T>(),
+            None,
+            self.entity,
+            self.location,
+        )
+        .map(|(value, ticks)| Mut {
+            value: &mut *value.cast::<T>(),
+            ticks: Ticks {
+                component_ticks: &mut *ticks,
+                last_change_tick,
+                change_tick,
+            },
+        })
     }
 
     /// # Safety
@@ -129,10 +141,10 @@ impl<'w> EntityRef<'w> {
         last_change_tick: u32,
         change_tick: u32,
     ) -> Option<Mut<'w, T>> {
-        get_relation_and_ticks_with_type(
+        get_component_and_ticks(
             self.world,
             TypeId::of::<T>(),
-            target,
+            Some(target),
             self.entity,
             self.location,
         )
@@ -213,8 +225,14 @@ impl<'w> EntityMut<'w> {
     pub fn get<T: Component>(&self) -> Option<&'w T> {
         // SAFE: entity location is valid and returned component is of type T
         unsafe {
-            get_component_with_type(self.world, TypeId::of::<T>(), self.entity, self.location)
-                .map(|value| &*value.cast::<T>())
+            get_component_with_type(
+                self.world,
+                TypeId::of::<T>(),
+                None,
+                self.entity,
+                self.location,
+            )
+            .map(|value| &*value.cast::<T>())
         }
     }
 
@@ -222,10 +240,10 @@ impl<'w> EntityMut<'w> {
     pub fn get_relation<T: Component>(&self, target: Entity) -> Option<&'w T> {
         // SAFE: entity location is valid and returned component is of type T
         unsafe {
-            get_relation_with_type(
+            get_component_with_type(
                 self.world,
                 TypeId::of::<T>(),
-                target,
+                Some(target),
                 self.entity,
                 self.location,
             )
@@ -238,9 +256,10 @@ impl<'w> EntityMut<'w> {
         // SAFE: world access is unique, entity location is valid, and returned component is of type
         // T
         unsafe {
-            get_component_and_ticks_with_type(
+            get_component_and_ticks(
                 self.world,
                 TypeId::of::<T>(),
+                None,
                 self.entity,
                 self.location,
             )
@@ -260,10 +279,10 @@ impl<'w> EntityMut<'w> {
         // SAFE: world access is unique, entity location is valid, and returned component is of type
         // T
         unsafe {
-            get_relation_and_ticks_with_type(
+            get_component_and_ticks(
                 self.world,
                 TypeId::of::<T>(),
-                target,
+                Some(target),
                 self.entity,
                 self.location,
             )
@@ -283,15 +302,21 @@ impl<'w> EntityMut<'w> {
     /// mutable references to the same component
     #[inline]
     pub unsafe fn get_unchecked_mut<T: Component>(&self) -> Option<Mut<'w, T>> {
-        get_component_and_ticks_with_type(self.world, TypeId::of::<T>(), self.entity, self.location)
-            .map(|(value, ticks)| Mut {
-                value: &mut *value.cast::<T>(),
-                ticks: Ticks {
-                    component_ticks: &mut *ticks,
-                    last_change_tick: self.world.last_change_tick(),
-                    change_tick: self.world.read_change_tick(),
-                },
-            })
+        get_component_and_ticks(
+            self.world,
+            TypeId::of::<T>(),
+            None,
+            self.entity,
+            self.location,
+        )
+        .map(|(value, ticks)| Mut {
+            value: &mut *value.cast::<T>(),
+            ticks: Ticks {
+                component_ticks: &mut *ticks,
+                last_change_tick: self.world.last_change_tick(),
+                change_tick: self.world.read_change_tick(),
+            },
+        })
     }
 
     /// # Safety
@@ -302,10 +327,10 @@ impl<'w> EntityMut<'w> {
         &self,
         target: Entity,
     ) -> Option<Mut<'w, T>> {
-        get_relation_and_ticks_with_type(
+        get_component_and_ticks(
             self.world,
             TypeId::of::<T>(),
-            target,
+            Some(target),
             self.entity,
             self.location,
         )
@@ -470,17 +495,17 @@ impl<'w> EntityMut<'w> {
     pub fn remove_bundle<T: Bundle>(&mut self) -> Option<T> {
         let archetypes = &mut self.world.archetypes;
         let storages = &mut self.world.storages;
-        let entity_data = &mut self.world.components;
+        let components = &mut self.world.components;
         let entities = &mut self.world.entities;
         let removed_components = &mut self.world.removed_components;
 
-        let bundle_info = self.world.bundles.init_bundle_info::<T>(entity_data);
+        let bundle_info = self.world.bundles.init_bundle_info::<T>(components);
         let old_location = self.location;
         let new_archetype_id = unsafe {
             remove_bundle_from_archetype(
                 archetypes,
                 storages,
-                entity_data,
+                components,
                 old_location.archetype_id,
                 bundle_info,
                 false,
@@ -501,7 +526,7 @@ impl<'w> EntityMut<'w> {
                 let component_id = bundle_components.next().unwrap();
                 // SAFE: entity location is valid and table row is removed below
                 take_component(
-                    entity_data,
+                    components,
                     storages,
                     old_archetype,
                     removed_components,
@@ -559,7 +584,7 @@ impl<'w> EntityMut<'w> {
         let kind_id = kind.id();
         let archetypes = &mut self.world.archetypes;
         let storages = &mut self.world.storages;
-        let entity_data = &mut self.world.components;
+        let components = &mut self.world.components;
         let entities = &mut self.world.entities;
         let removed_components = &mut self.world.removed_components;
 
@@ -568,7 +593,7 @@ impl<'w> EntityMut<'w> {
             remove_bundle_from_archetype(
                 archetypes,
                 storages,
-                entity_data,
+                components,
                 old_location.archetype_id,
                 bundle_info,
                 false,
@@ -586,7 +611,7 @@ impl<'w> EntityMut<'w> {
         let result = unsafe {
             // SAFE: entity location is valid and table row is removed below
             core::ptr::read(take_component(
-                entity_data,
+                components,
                 storages,
                 old_archetype,
                 removed_components,
@@ -641,17 +666,17 @@ impl<'w> EntityMut<'w> {
     pub fn remove_bundle_intersection<T: Bundle>(&mut self) {
         let archetypes = &mut self.world.archetypes;
         let storages = &mut self.world.storages;
-        let entity_data = &mut self.world.components;
+        let components = &mut self.world.components;
         let entities = &mut self.world.entities;
         let removed_components = &mut self.world.removed_components;
 
-        let bundle_info = self.world.bundles.init_bundle_info::<T>(entity_data);
+        let bundle_info = self.world.bundles.init_bundle_info::<T>(components);
         let old_location = self.location;
         let new_archetype_id = unsafe {
             remove_bundle_from_archetype(
                 archetypes,
                 storages,
-                entity_data,
+                components,
                 old_location.archetype_id,
                 bundle_info,
                 true,
@@ -809,7 +834,22 @@ impl<'w> EntityMut<'w> {
 /// `entity_location` must be within bounds of the given archetype and `entity` must exist inside
 /// the archetype
 #[inline]
-unsafe fn get_entity_data(
+unsafe fn get_component_with_type(
+    world: &World,
+    component_id: TypeId,
+    target: Option<Entity>,
+    entity: Entity,
+    location: EntityLocation,
+) -> Option<*mut u8> {
+    let component_id = world.components.component_info(component_id)?.id();
+    get_component(world, component_id, target, entity, location)
+}
+
+/// # Safety
+/// `entity_location` must be within bounds of the given archetype and `entity` must exist inside
+/// the archetype
+#[inline]
+unsafe fn get_component(
     world: &World,
     component_id: ComponentId,
     target: Option<Entity>,
@@ -817,8 +857,8 @@ unsafe fn get_entity_data(
     location: EntityLocation,
 ) -> Option<*mut u8> {
     let archetype = &world.archetypes[location.archetype_id];
-    let kind_info = world.components.info(component_id).unwrap();
-    match kind_info.storage_type() {
+    let component_info = world.components.info(component_id).unwrap();
+    match component_info.storage_type() {
         StorageType::Table => {
             let table = &world.storages.tables[archetype.table_id()];
             let components = table.get_column(component_id, target)?;
@@ -837,16 +877,21 @@ unsafe fn get_entity_data(
 /// # Safety
 /// Caller must ensure that `relationship_id` is valid
 #[inline]
-unsafe fn get_entity_data_and_ticks(
+unsafe fn get_component_and_ticks(
     world: &World,
-    component_id: ComponentId,
+    component_id: TypeId,
     target: Option<Entity>,
     entity: Entity,
     location: EntityLocation,
 ) -> Option<(*mut u8, *mut ComponentTicks)> {
+    let component_id = world
+        .components()
+        .component_info(component_id)
+        .unwrap()
+        .id();
     let archetype = &world.archetypes[location.archetype_id];
-    let kind_info = world.components.info(component_id).unwrap();
-    match kind_info.storage_type() {
+    let component_info = world.components.info(component_id).unwrap();
+    match component_info.storage_type() {
         StorageType::Table => {
             let table = &world.storages.tables[archetype.table_id()];
             let components = table.get_column(component_id, target)?;
@@ -878,7 +923,7 @@ unsafe fn get_entity_data_and_ticks(
 #[inline]
 #[allow(clippy::too_many_arguments)]
 unsafe fn take_component(
-    entity_data: &Components,
+    components: &Components,
     storages: &mut Storages,
     archetype: &Archetype,
     removed_components: &mut SparseSet<ComponentId, (Vec<Entity>, HashMap<Entity, Vec<Entity>>)>,
@@ -887,8 +932,6 @@ unsafe fn take_component(
     entity: Entity,
     location: EntityLocation,
 ) -> *mut u8 {
-    let kind_info = entity_data.info(component_id).unwrap();
-
     let targets = removed_components.get_or_insert_with(component_id, Default::default);
     match target {
         None => targets.0.push(entity),
@@ -899,7 +942,8 @@ unsafe fn take_component(
             .push(entity),
     }
 
-    match kind_info.storage_type() {
+    let storage_type = components.info(component_id).unwrap().storage_type();
+    match storage_type {
         StorageType::Table => {
             let table = &storages.tables[archetype.table_id()];
             // SAFE: archetypes will always point to valid columns
@@ -915,56 +959,6 @@ unsafe fn take_component(
             .remove_and_forget(entity)
             .unwrap(),
     }
-}
-
-/// # Safety
-/// `entity_location` must be within bounds of an archetype that exists.
-unsafe fn get_component_with_type(
-    world: &World,
-    type_id: TypeId,
-    entity: Entity,
-    location: EntityLocation,
-) -> Option<*mut u8> {
-    let kind = world.components.component_info(type_id)?;
-    get_entity_data(world, kind.id(), None, entity, location)
-}
-
-/// # Safety
-/// `entity_location` must be within bounds of an archetype that exists.
-unsafe fn get_relation_with_type(
-    world: &World,
-    type_id: TypeId,
-    target: Entity,
-    entity: Entity,
-    location: EntityLocation,
-) -> Option<*mut u8> {
-    let kind = world.components.component_info(type_id)?;
-    get_entity_data(world, kind.id(), Some(target), entity, location)
-}
-
-/// # Safety
-/// `entity_location` must be within bounds of an archetype that exists.
-pub(crate) unsafe fn get_component_and_ticks_with_type(
-    world: &World,
-    type_id: TypeId,
-    entity: Entity,
-    location: EntityLocation,
-) -> Option<(*mut u8, *mut ComponentTicks)> {
-    let kind_info = world.components.component_info(type_id)?;
-    get_entity_data_and_ticks(world, kind_info.id(), None, entity, location)
-}
-
-/// # Safety
-/// `entity_location` must be within bounds of an archetype that exists.
-pub(crate) unsafe fn get_relation_and_ticks_with_type(
-    world: &World,
-    type_id: TypeId,
-    target: Entity,
-    entity: Entity,
-    location: EntityLocation,
-) -> Option<(*mut u8, *mut ComponentTicks)> {
-    let kind_info = world.components.component_info(type_id)?;
-    get_entity_data_and_ticks(world, kind_info.id(), Some(target), entity, location)
 }
 
 fn contains_component_with_type(world: &World, type_id: TypeId, location: EntityLocation) -> bool {

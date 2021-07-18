@@ -272,9 +272,10 @@ impl Bundles {
                 let mut storage_types = Vec::new();
 
                 for type_info in type_info {
-                    let kind_info = components.component_info_or_insert(type_info.clone().into());
-                    component_ids.push((kind_info.id(), None));
-                    storage_types.push(kind_info.storage_type());
+                    let component_info =
+                        components.component_info_or_insert(type_info.clone().into());
+                    component_ids.push((component_info.id(), None));
+                    storage_types.push(component_info.storage_type());
                 }
 
                 let mut deduped = component_ids.clone();

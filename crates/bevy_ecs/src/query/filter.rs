@@ -349,14 +349,14 @@ unsafe impl<T: Component> FetchState for WithoutRelationState<T> {
     type RelationFilter = smallvec::SmallVec<[Entity; 4]>;
 
     fn init(world: &mut World) -> Self {
-        let kind_info = world
+        let component_info = world
             .components
             .component_info_or_insert(ComponentDescriptor::default::<T>());
 
         Self {
             marker: PhantomData,
-            component_id: kind_info.id(),
-            storage_type: kind_info.storage_type(),
+            component_id: component_info.id(),
+            storage_type: component_info.storage_type(),
         }
     }
 
@@ -490,14 +490,14 @@ unsafe impl<T: Component> FetchState for WithRelationState<T> {
     type RelationFilter = SmallVec<[Entity; 4]>;
 
     fn init(world: &mut World) -> Self {
-        let kind_info = world
+        let component_info = world
             .components
             .component_info_or_insert(ComponentDescriptor::default::<T>());
 
         Self {
             marker: PhantomData,
-            component_id: kind_info.id(),
-            storage_type: kind_info.storage_type(),
+            component_id: component_info.id(),
+            storage_type: component_info.storage_type(),
         }
     }
 
