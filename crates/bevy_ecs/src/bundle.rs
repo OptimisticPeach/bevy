@@ -168,10 +168,10 @@ impl BundleInfo {
         component_ptr: *mut u8,
         change_tick: u32,
     ) {
-        let component_id = self.component_ids[component_index];
+        let (component_id, target) = self.component_ids[component_index];
         match self.storage_types[component_index] {
             StorageType::Table => {
-                let column = table.get_column_mut(component_id).unwrap();
+                let column = table.get_column_mut(component_id, target).unwrap();
                 match bundle_status[component_index] {
                     ComponentStatus::Added => {
                         column.initialize(
@@ -186,7 +186,7 @@ impl BundleInfo {
                 }
             }
             StorageType::SparseSet => {
-                let sparse_set = sparse_sets.get_mut(component_id.0, component_id.1).unwrap();
+                let sparse_set = sparse_sets.get_mut(component_id, target).unwrap();
                 sparse_set.insert(entity, component_ptr, change_tick);
             }
         }

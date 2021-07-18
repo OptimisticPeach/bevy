@@ -3,9 +3,7 @@ use crate::{
     archetype::{Archetype, Archetypes},
     bundle::Bundles,
     change_detection::Ticks,
-    component::{
-        Component, ComponentDescriptor, ComponentId, ComponentTicks, Components, StorageType,
-    },
+    component::{Component, ComponentDescriptor, ComponentId, ComponentTicks, Components},
     entity::{Entities, Entity},
     query::{
         FilterFetch, FilteredAccess, FilteredAccessSet, QueryState, ReadOnlyFetch, WorldQuery,

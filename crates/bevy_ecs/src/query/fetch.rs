@@ -400,7 +400,7 @@ impl<'w, 's, T: Component> Fetch<'w, 's> for ReadFetch<T> {
             StorageType::Table => {
                 self.entity_table_rows = archetype.entity_table_rows().as_ptr();
                 let column = tables[archetype.table_id()]
-                    .get_column((state.component_id, None))
+                    .get_column(state.component_id, None)
                     .unwrap();
                 self.table_components = column.get_data_ptr().cast::<T>();
             }
@@ -416,7 +416,7 @@ impl<'w, 's, T: Component> Fetch<'w, 's> for ReadFetch<T> {
         table: &Table,
     ) {
         self.table_components = table
-            .get_column((state.component_id, None))
+            .get_column(state.component_id, None)
             .unwrap()
             .get_data_ptr()
             .cast::<T>();
@@ -584,7 +584,7 @@ impl<'w, 's, T: Component> Fetch<'w, 's> for WriteFetch<T> {
             StorageType::Table => {
                 self.entity_table_rows = archetype.entity_table_rows().as_ptr();
                 let column = tables[archetype.table_id()]
-                    .get_column((state.component_id, None))
+                    .get_column(state.component_id, None)
                     .unwrap();
                 self.table_components = column.get_data_ptr().cast::<T>();
                 self.table_ticks = column.get_ticks_ptr();
@@ -600,7 +600,7 @@ impl<'w, 's, T: Component> Fetch<'w, 's> for WriteFetch<T> {
         _relation_filter: &Self::RelationFilter,
         table: &Table,
     ) {
-        let column = table.get_column((state.component_id, None)).unwrap();
+        let column = table.get_column(state.component_id, None).unwrap();
         self.table_components = column.get_data_ptr().cast::<T>();
         self.table_ticks = column.get_ticks_ptr();
     }
@@ -1616,7 +1616,7 @@ impl<'w, 's, T: Component> Fetch<'w, 's> for ChangeTrackersFetch<T> {
             StorageType::Table => {
                 self.entity_table_rows = archetype.entity_table_rows().as_ptr();
                 let column = tables[archetype.table_id()]
-                    .get_column((state.component_id, None))
+                    .get_column(state.component_id, None)
                     .unwrap();
                 self.table_ticks = column.get_ticks_const_ptr();
             }
@@ -1632,7 +1632,7 @@ impl<'w, 's, T: Component> Fetch<'w, 's> for ChangeTrackersFetch<T> {
         table: &Table,
     ) {
         self.table_ticks = table
-            .get_column((state.component_id, None))
+            .get_column(state.component_id, None)
             .unwrap()
             .get_ticks_const_ptr();
     }

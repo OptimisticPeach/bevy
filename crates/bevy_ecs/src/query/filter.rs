@@ -1011,7 +1011,7 @@ macro_rules! impl_tick_filter {
 
             unsafe fn set_table(&mut self, state: &Self::State, _relation_filter: &Self::RelationFilter, table: &Table) {
                 self.table_ticks = table
-                    .get_column((state.component_id, None)).unwrap()
+                    .get_column(state.component_id, None).unwrap()
                     .get_ticks_ptr();
             }
 
@@ -1021,7 +1021,7 @@ macro_rules! impl_tick_filter {
                         self.entity_table_rows = archetype.entity_table_rows().as_ptr();
                         let table = &tables[archetype.table_id()];
                         self.table_ticks = table
-                            .get_column((state.component_id, None)).unwrap()
+                            .get_column(state.component_id, None).unwrap()
                             .get_ticks_ptr();
                     }
                     StorageType::SparseSet => self.entities = archetype.entities().as_ptr(),

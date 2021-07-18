@@ -82,7 +82,7 @@ impl DynamicScene {
                     })?;
                 if world
                     .entity(entity)
-                    .contains_type_id(registration.type_id())
+                    .contains_type_id(registration.type_id(), None)
                 {
                     reflect_component.apply_component(world, entity, &**component);
                 } else {

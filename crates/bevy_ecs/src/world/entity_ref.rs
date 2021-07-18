@@ -50,34 +50,30 @@ impl<'w> EntityRef<'w> {
     }
 
     #[inline]
-    pub fn contains_relation<T: 'static>(&self, target: Entity) -> bool {
-        self.world
-            .components
-            .component_info(TypeId::of::<T>())
-            .map(|component_info| self.contains_id(component_info.id(), Some(target)))
-            .unwrap_or(false)
+    pub fn contains_relation<T: Component>(&self, target: Entity) -> bool {
+        self.contains_type_id(TypeId::of::<T>(), Some(target))
     }
 
     #[inline]
     pub fn contains<T: Component>(&self) -> bool {
-        self.contains_type_id(TypeId::of::<T>())
+        self.contains_type_id(TypeId::of::<T>(), None)
     }
 
     #[inline]
     pub fn contains_id(&self, component_id: ComponentId, target: Option<Entity>) -> bool {
-        contains_entity_data_with_id(self.world, component_id, target, self.location)
+        contains_component(self.world, component_id, target, self.location)
     }
 
     #[inline]
-    pub fn contains_type_id(&self, type_id: TypeId) -> bool {
-        contains_component_with_type(self.world, type_id, self.location)
+    pub fn contains_type_id(&self, type_id: TypeId, target: Option<Entity>) -> bool {
+        contains_component_with_type(self.world, type_id, target, self.location)
     }
 
     #[inline]
     pub fn get<T: Component>(&self) -> Option<&'w T> {
         // SAFE: entity location is valid and returned component is of type T
         unsafe {
-            get_component_with_type(
+            get_component(
                 self.world,
                 TypeId::of::<T>(),
                 None,
@@ -92,7 +88,7 @@ impl<'w> EntityRef<'w> {
     pub fn get_relation<T: Component>(&self, target: Entity) -> Option<&'w T> {
         // SAFE: entity location is valid and returned component is of type T
         unsafe {
-            get_component_with_type(
+            get_component(
                 self.world,
                 TypeId::of::<T>(),
                 Some(target),
@@ -196,34 +192,30 @@ impl<'w> EntityMut<'w> {
     }
 
     #[inline]
-    pub fn contains_relation<T: 'static>(&self, target: Entity) -> bool {
-        self.world
-            .components
-            .component_info(TypeId::of::<T>())
-            .map(|component_info| self.contains_id(component_info.id(), Some(target)))
-            .unwrap_or(false)
+    pub fn contains_relation<T: Component>(&self, target: Entity) -> bool {
+        self.contains_type_id(TypeId::of::<T>(), Some(target))
     }
 
     #[inline]
     pub fn contains<T: Component>(&self) -> bool {
-        self.contains_type_id(TypeId::of::<T>())
+        self.contains_type_id(TypeId::of::<T>(), None)
     }
 
     #[inline]
     pub fn contains_id(&self, component_id: ComponentId, target: Option<Entity>) -> bool {
-        contains_entity_data_with_id(self.world, component_id, target, self.location)
+        contains_component(self.world, component_id, target, self.location)
     }
 
     #[inline]
-    pub fn contains_type_id(&self, type_id: TypeId) -> bool {
-        contains_component_with_type(self.world, type_id, self.location)
+    pub fn contains_type_id(&self, type_id: TypeId, target: Option<Entity>) -> bool {
+        contains_component_with_type(self.world, type_id, target, self.location)
     }
 
     #[inline]
     pub fn get<T: Component>(&self) -> Option<&'w T> {
         // SAFE: entity location is valid and returned component is of type T
         unsafe {
-            get_component_with_type(
+            get_component(
                 self.world,
                 TypeId::of::<T>(),
                 None,
@@ -238,7 +230,7 @@ impl<'w> EntityMut<'w> {
     pub fn get_relation<T: Component>(&self, target: Entity) -> Option<&'w T> {
         // SAFE: entity location is valid and returned component is of type T
         unsafe {
-            get_component_with_type(
+            get_component(
                 self.world,
                 TypeId::of::<T>(),
                 Some(target),
@@ -841,7 +833,7 @@ impl<'w> EntityMut<'w> {
 /// `entity_location` must be within bounds of the given archetype and `entity` must exist inside
 /// the archetype
 #[inline]
-unsafe fn get_component_with_type(
+unsafe fn get_component(
     world: &World,
     component_id: TypeId,
     target: Option<Entity>,
@@ -849,20 +841,6 @@ unsafe fn get_component_with_type(
     location: EntityLocation,
 ) -> Option<*mut u8> {
     let component_id = world.components.component_info(component_id)?.id();
-    get_component(world, component_id, target, entity, location)
-}
-
-/// # Safety
-/// `entity_location` must be within bounds of the given archetype and `entity` must exist inside
-/// the archetype
-#[inline]
-unsafe fn get_component(
-    world: &World,
-    component_id: ComponentId,
-    target: Option<Entity>,
-    entity: Entity,
-    location: EntityLocation,
-) -> Option<*mut u8> {
     let archetype = &world.archetypes[location.archetype_id];
     let component_info = world.components.info(component_id).unwrap();
     match component_info.storage_type() {
@@ -891,11 +869,7 @@ unsafe fn get_component_and_ticks(
     entity: Entity,
     location: EntityLocation,
 ) -> Option<(*mut u8, *mut ComponentTicks)> {
-    let component_id = world
-        .components()
-        .component_info(component_id)
-        .unwrap()
-        .id();
+    let component_id = world.components().component_info(component_id)?.id();
     let archetype = &world.archetypes[location.archetype_id];
     let component_info = world.components.info(component_id).unwrap();
     match component_info.storage_type() {
@@ -968,17 +942,20 @@ unsafe fn take_component(
     }
 }
 
-fn contains_component_with_type(world: &World, type_id: TypeId, location: EntityLocation) -> bool {
+fn contains_component_with_type(
+    world: &World,
+    type_id: TypeId,
+    target: Option<Entity>,
+    location: EntityLocation,
+) -> bool {
     world
         .components
         .component_info(type_id)
-        .map(|component_info| {
-            contains_entity_data_with_id(world, component_info.id(), None, location)
-        })
+        .map(|component_info| contains_component(world, component_info.id(), target, location))
         .unwrap_or(false)
 }
 
-fn contains_entity_data_with_id(
+fn contains_component(
     world: &World,
     component_id: ComponentId,
     target: Option<Entity>,
