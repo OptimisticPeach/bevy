@@ -146,7 +146,7 @@ impl Archetype {
         let mut components =
             SparseSet::with_capacity(table_components.len() + sparse_set_components.len());
         let mut relations = SparseSet::new();
-        for ((kind_id, target), archetype_component_id) in
+        for ((component_id, target), archetype_component_id) in
             table_components.iter().zip(table_archetype_components)
         {
             let arch_comp_info = ArchetypeComponentInfo {
@@ -156,16 +156,16 @@ impl Archetype {
 
             match target {
                 None => {
-                    components.insert(*kind_id, arch_comp_info);
+                    components.insert(*component_id, arch_comp_info);
                 }
                 Some(target) => {
-                    let set = relations.get_or_insert_with(*kind_id, StableHashMap::default);
+                    let set = relations.get_or_insert_with(*component_id, StableHashMap::default);
                     set.insert(*target, arch_comp_info);
                 }
             };
         }
 
-        for ((kind_id, target), archetype_component_id) in sparse_set_components
+        for ((component_id, target), archetype_component_id) in sparse_set_components
             .iter()
             .zip(sparse_set_archetype_components)
         {
@@ -176,10 +176,10 @@ impl Archetype {
 
             match target {
                 None => {
-                    components.insert(*kind_id, arch_comp_info);
+                    components.insert(*component_id, arch_comp_info);
                 }
                 Some(target) => {
-                    let set = relations.get_or_insert_with(*kind_id, StableHashMap::default);
+                    let set = relations.get_or_insert_with(*component_id, StableHashMap::default);
                     set.insert(*target, arch_comp_info);
                 }
             };
@@ -247,12 +247,12 @@ impl Archetype {
         self.components
             .indices()
             .map(|kind| (kind, None))
-            .chain(self.relations.indices().flat_map(move |kind_id| {
+            .chain(self.relations.indices().flat_map(move |component_id| {
                 self.relations
-                    .get(kind_id)
+                    .get(component_id)
                     .unwrap()
                     .keys()
-                    .map(move |target| (kind_id, Some(*target)))
+                    .map(move |target| (component_id, Some(*target)))
             }))
     }
 

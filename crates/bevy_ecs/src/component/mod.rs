@@ -209,7 +209,7 @@ pub enum TargetType {
 pub struct Components {
     infos: Vec<ComponentInfo>,
     // These are only used by bevy. Scripting/dynamic components should
-    // use their own hashmap to lookup CustomId -> RelationKindId
+    // use their own hashmap to lookup CustomId -> ComponentId
     component_indices: HashMap<TypeId, ComponentId, fxhash::FxBuildHasher>,
     resource_indices: HashMap<TypeId, ComponentId, fxhash::FxBuildHasher>,
 }
@@ -281,7 +281,7 @@ impl Components {
             .get(&layout.type_id().unwrap())
             .copied()
         {
-            Some(kind) => &self.infos[kind.0],
+            Some(id) => &self.infos[id.0],
             None => self.new_component(layout).unwrap(),
         }
     }
@@ -292,7 +292,7 @@ impl Components {
             .get(&layout.type_id().unwrap())
             .copied()
         {
-            Some(kind) => &self.infos[kind.0],
+            Some(id) => &self.infos[id.0],
             None => self.new_resource(layout).unwrap(),
         }
     }

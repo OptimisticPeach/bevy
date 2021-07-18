@@ -33,7 +33,7 @@ impl TableId {
 
 #[derive(Debug)]
 pub struct Column {
-    pub(crate) relation: (ComponentId, Option<Entity>),
+    pub(crate) component_id: (ComponentId, Option<Entity>),
     pub(crate) data: BlobVec,
     pub(crate) ticks: Vec<UnsafeCell<ComponentTicks>>,
 }
@@ -46,7 +46,7 @@ impl Column {
         capacity: usize,
     ) -> Self {
         Column {
-            relation: (component_info.id(), target),
+            component_id: (component_info.id(), target),
             data: BlobVec::new(component_info.layout(), component_info.drop(), capacity),
             ticks: Vec::with_capacity(capacity),
         }
@@ -194,7 +194,7 @@ impl Column {
 
 pub struct Table {
     pub(crate) component_columns: SparseSet<ComponentId, Column>,
-    pub(crate) relation_columns: SparseSet<ComponentId, StableHashMap<Entity, Column>>,
+    pub(crate) targetted_component_columns: SparseSet<ComponentId, StableHashMap<Entity, Column>>,
     entities: Vec<Entity>,
 }
 
@@ -202,7 +202,7 @@ impl Table {
     pub const fn new() -> Table {
         Self {
             component_columns: SparseSet::new(),
-            relation_columns: SparseSet::new(),
+            targetted_component_columns: SparseSet::new(),
             entities: Vec::new(),
         }
     }
@@ -210,7 +210,7 @@ impl Table {
     pub fn with_capacity(capacity: usize, column_capacity: usize) -> Table {
         Self {
             component_columns: SparseSet::with_capacity(column_capacity),
-            relation_columns: SparseSet::with_capacity(column_capacity),
+            targetted_component_columns: SparseSet::with_capacity(column_capacity),
             entities: Vec::with_capacity(capacity),
         }
     }
@@ -222,25 +222,25 @@ impl Table {
 
     fn columns_mut(&mut self) -> impl Iterator<Item = &mut Column> {
         self.component_columns.values_mut().chain(
-            self.relation_columns
+            self.targetted_component_columns
                 .values_mut()
                 .flat_map(|map| map.values_mut()),
         )
     }
 
-    pub fn add_column(&mut self, relation_info: &ComponentInfo, target: Option<Entity>) {
+    pub fn add_column(&mut self, component_info: &ComponentInfo, target: Option<Entity>) {
         let capacity = self.capacity();
         match target {
             None => self.component_columns.insert(
-                relation_info.id(),
-                Column::with_capacity(relation_info, None, capacity),
+                component_info.id(),
+                Column::with_capacity(component_info, None, capacity),
             ),
             Some(target) => {
-                self.relation_columns
-                    .get_or_insert_with(relation_info.id(), StableHashMap::default)
+                self.targetted_component_columns
+                    .get_or_insert_with(component_info.id(), StableHashMap::default)
                     .insert(
                         target,
-                        Column::with_capacity(relation_info, Some(target), capacity),
+                        Column::with_capacity(component_info, Some(target), capacity),
                     );
             }
         }
@@ -281,7 +281,8 @@ impl Table {
         let new_row = new_table.allocate(self.entities.swap_remove(row));
         for column in self.columns_mut() {
             let (data, ticks) = column.swap_remove_and_forget_unchecked(row);
-            if let Some(new_column) = new_table.get_column_mut(column.relation.0, column.relation.1)
+            if let Some(new_column) =
+                new_table.get_column_mut(column.component_id.0, column.component_id.1)
             {
                 new_column.initialize(new_row, data, ticks);
             }
@@ -311,7 +312,8 @@ impl Table {
         let is_last = row == self.entities.len() - 1;
         let new_row = new_table.allocate(self.entities.swap_remove(row));
         for column in self.columns_mut() {
-            if let Some(new_column) = new_table.get_column_mut(column.relation.0, column.relation.1)
+            if let Some(new_column) =
+                new_table.get_column_mut(column.component_id.0, column.component_id.1)
             {
                 let (data, ticks) = column.swap_remove_and_forget_unchecked(row);
                 new_column.initialize(new_row, data, ticks);
@@ -345,7 +347,7 @@ impl Table {
         let new_row = new_table.allocate(self.entities.swap_remove(row));
         for column in self.columns_mut() {
             let new_column = new_table
-                .get_column_mut(column.relation.0, column.relation.1)
+                .get_column_mut(column.component_id.0, column.component_id.1)
                 .unwrap();
             let (data, ticks) = column.swap_remove_and_forget_unchecked(row);
             new_column.initialize(new_row, data, ticks);
@@ -364,7 +366,7 @@ impl Table {
     pub fn get_column(&self, component_id: ComponentId, target: Option<Entity>) -> Option<&Column> {
         match target {
             Some(target) => self
-                .relation_columns
+                .targetted_component_columns
                 .get(component_id)
                 .and_then(|map| map.get(&target)),
             None => self.component_columns.get(component_id),
@@ -379,7 +381,7 @@ impl Table {
     ) -> Option<&mut Column> {
         match target {
             Some(target) => self
-                .relation_columns
+                .targetted_component_columns
                 .get_mut(component_id)
                 .and_then(|map| map.get_mut(&target)),
             None => self.component_columns.get_mut(component_id),
@@ -390,7 +392,7 @@ impl Table {
     pub fn has_column(&self, component_id: ComponentId, target: Option<Entity>) -> bool {
         match target {
             Some(target) => self
-                .relation_columns
+                .targetted_component_columns
                 .get(component_id)
                 .and_then(|map| map.get(&target))
                 .is_some(),

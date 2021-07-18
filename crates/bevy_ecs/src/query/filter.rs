@@ -396,7 +396,11 @@ unsafe impl<T: Component> FetchState for WithoutRelationState<T> {
     fn matches_table(&self, table: &Table, relation_filter: &SmallVec<[Entity; 4]>) -> bool {
         // If there are no relations of this kind then the table matches regardless of
         // what relation filters we have
-        if table.relation_columns.get(self.component_id).is_none() {
+        if table
+            .targetted_component_columns
+            .get(self.component_id)
+            .is_none()
+        {
             return true;
         }
         // No relation filters means there shouldn't be *any* relations of the kind but we
@@ -526,7 +530,11 @@ unsafe impl<T: Component> FetchState for WithRelationState<T> {
     }
 
     fn matches_table(&self, table: &Table, relation_filter: &SmallVec<[Entity; 4]>) -> bool {
-        if table.relation_columns.get(self.component_id).is_none() {
+        if table
+            .targetted_component_columns
+            .get(self.component_id)
+            .is_none()
+        {
             return false;
         }
         relation_filter
@@ -625,8 +633,8 @@ unsafe impl<T: Bundle> FetchState for WithBundleState<T> {
         let components = &world.components;
         Self {
             component_ids: bundle_info.component_ids.clone(),
-            is_dense: bundle_info.component_ids.iter().all(|(kind_id, _)| {
-                components.info(*kind_id).unwrap().storage_type() == StorageType::Table
+            is_dense: bundle_info.component_ids.iter().all(|(component_id, _)| {
+                components.info(*component_id).unwrap().storage_type() == StorageType::Table
             }),
             marker: PhantomData,
         }
@@ -634,8 +642,8 @@ unsafe impl<T: Bundle> FetchState for WithBundleState<T> {
 
     #[inline]
     fn update_component_access(&self, access: &mut FilteredAccess<ComponentId>) {
-        for (kind_id, _) in self.component_ids.iter().cloned() {
-            access.add_with(kind_id);
+        for (component_id, _) in self.component_ids.iter().cloned() {
+            access.add_with(component_id);
         }
     }
 
@@ -654,13 +662,13 @@ unsafe impl<T: Bundle> FetchState for WithBundleState<T> {
     ) -> bool {
         self.component_ids
             .iter()
-            .all(|&(kind_id, target)| archetype.contains(kind_id, target))
+            .all(|&(component_id, target)| archetype.contains(component_id, target))
     }
 
     fn matches_table(&self, table: &Table, _relation_filter: &Self::RelationFilter) -> bool {
         self.component_ids
             .iter()
-            .all(|&(kind_id, target)| table.has_column(kind_id, target))
+            .all(|&(component_id, target)| table.has_column(component_id, target))
     }
 
     fn deduplicate_targets(_relation_filter: &mut Self::RelationFilter) {}
@@ -1003,7 +1011,7 @@ macro_rules! impl_tick_filter {
 
             unsafe fn set_table(&mut self, state: &Self::State, _relation_filter: &Self::RelationFilter, table: &Table) {
                 self.table_ticks = table
-                    .get_column(state.component_id, None).unwrap()
+                    .get_column((state.component_id, None)).unwrap()
                     .get_ticks_ptr();
             }
 
@@ -1013,7 +1021,7 @@ macro_rules! impl_tick_filter {
                         self.entity_table_rows = archetype.entity_table_rows().as_ptr();
                         let table = &tables[archetype.table_id()];
                         self.table_ticks = table
-                            .get_column(state.component_id, None).unwrap()
+                            .get_column((state.component_id, None)).unwrap()
                             .get_ticks_ptr();
                     }
                     StorageType::SparseSet => self.entities = archetype.entities().as_ptr(),
