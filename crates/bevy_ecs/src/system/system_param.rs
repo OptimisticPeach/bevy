@@ -661,7 +661,7 @@ unsafe impl<T: Component> SystemParamState for RemovedComponentsState<T> {
         Self {
             component_id: world
                 .components
-                .component_info_or_insert(ComponentDescriptor::new::<T>(StorageType::Table))
+                .component_info_or_insert(ComponentDescriptor::default::<T>())
                 .id(),
             marker: PhantomData,
         }
