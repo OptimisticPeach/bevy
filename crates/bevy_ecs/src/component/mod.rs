@@ -35,7 +35,7 @@ impl<T: Send + Sync + 'static> Component for T {}
 /// struct A;
 ///
 /// let mut world = World::default();
-/// world.register_component(ComponentDescriptor::from_storage::<A>(StorageType::SparseSet));
+/// world.register_component(ComponentDescriptor::new::<A>(StorageType::SparseSet));
 /// ```
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub enum StorageType {

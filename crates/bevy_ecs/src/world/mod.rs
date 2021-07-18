@@ -152,7 +152,7 @@ impl World {
     /// }
     ///
     /// let mut world = World::new();
-    /// world.register_component(ComponentDescriptor::from_storage::<Position>(StorageType::SparseSet)).unwrap();
+    /// world.register_component(ComponentDescriptor::new::<Position>(StorageType::SparseSet)).unwrap();
     /// ```
     pub fn register_component(
         &mut self,
